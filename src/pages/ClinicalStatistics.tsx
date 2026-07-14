@@ -35,7 +35,7 @@ type DiagnosisRecord = {
   ageGroup: string;
 };
 
-const PIE_COLORS = ["#16641D", "#D4AF37", "#0EA5E9", "#F97316", "#7C3AED", "#EC4899", "#14B8A6", "#EF4444"];
+const PIE_COLORS = ["#007A3D", "#F2A900", "#0EA5E9", "#F97316", "#7C3AED", "#EC4899", "#14B8A6", "#EF4444"];
 
 const ARV_KEYWORDS = ["arv", "art", "tenofovir", "lamivudine", "dolutegravir", "efavirenz", "nevirapine", "abacavir", "lopinavir", "ritonavir", "atazanavir", "emtricitabine"];
 const TB_KEYWORDS = ["tb", "tuberculosis", "rifampicin", "isoniazid", "pyrazinamide", "ethambutol", "streptomycin", "rhze"];
@@ -698,7 +698,7 @@ export default function ClinicalStatistics() {
                 <YAxis tick={{ fontSize: 12 }} stroke="hsl(210 10% 46%)" />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="encounters" stroke="#16641D" strokeWidth={2} dot={{ r: 3 }} name="Encounters" />
+                <Line type="monotone" dataKey="encounters" stroke="#007A3D" strokeWidth={2} dot={{ r: 3 }} name="Encounters" />
                 <Line type="monotone" dataKey="triage" stroke="#0EA5E9" strokeWidth={2} dot={{ r: 3 }} name="Triage" />
               </LineChart>
             </ResponsiveContainer>
@@ -729,7 +729,7 @@ export default function ClinicalStatistics() {
                   <XAxis dataKey="group" tick={{ fontSize: 12 }} stroke="hsl(210 10% 46%)" />
                   <YAxis tick={{ fontSize: 12 }} stroke="hsl(210 10% 46%)" />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#16641D" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill="#007A3D" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -792,8 +792,8 @@ export default function ClinicalStatistics() {
                   <XAxis dataKey="diagnosis" tick={{ fontSize: 10 }} angle={-20} textAnchor="end" height={90} stroke="hsl(210 10% 46%)" />
                   <YAxis tick={{ fontSize: 12 }} stroke="hsl(210 10% 46%)" />
                   <Tooltip /><Legend />
-                  <Bar dataKey="Male" stackId="a" fill="#16641D" />
-                  <Bar dataKey="Female" stackId="a" fill="#D4AF37" />
+                  <Bar dataKey="Male" stackId="a" fill="#007A3D" />
+                  <Bar dataKey="Female" stackId="a" fill="#F2A900" />
                   <Bar dataKey="Other" stackId="a" fill="#7C3AED" />
                 </BarChart>
               </ResponsiveContainer>
@@ -808,8 +808,8 @@ export default function ClinicalStatistics() {
                   <XAxis dataKey="ageGroup" tick={{ fontSize: 11 }} stroke="hsl(210 10% 46%)" />
                   <YAxis tick={{ fontSize: 12 }} stroke="hsl(210 10% 46%)" />
                   <Tooltip /><Legend />
-                  <Bar dataKey="Male" fill="#16641D" />
-                  <Bar dataKey="Female" fill="#D4AF37" />
+                  <Bar dataKey="Male" fill="#007A3D" />
+                  <Bar dataKey="Female" fill="#F2A900" />
                   <Bar dataKey="Other" fill="#7C3AED" />
                 </BarChart>
               </ResponsiveContainer>
@@ -842,7 +842,7 @@ export default function ClinicalStatistics() {
                   <XAxis dataKey="stage" tick={{ fontSize: 10 }} angle={-15} textAnchor="end" height={60} stroke="hsl(210 10% 46%)" />
                   <YAxis tick={{ fontSize: 12 }} stroke="hsl(210 10% 46%)" />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#16641D" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill="#007A3D" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>

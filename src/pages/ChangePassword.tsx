@@ -76,8 +76,8 @@ export default function ChangePassword() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <div className="relative mx-auto mb-4 h-16 w-16">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#16641D] to-[#D4AF37] rounded-xl blur-lg opacity-40" />
-            <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-[#16641D] to-[#1e7a29] shadow-lg shadow-[#16641D]/20">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#007A3D] to-[#F2A900] rounded-xl blur-lg opacity-40" />
+            <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-[#007A3D] to-[#00A956] shadow-lg shadow-[#007A3D]/20">
               <Lock className="h-8 w-8 text-white" />
             </div>
           </div>
@@ -98,7 +98,7 @@ export default function ChangePassword() {
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="Enter your current password"
                 required
-                className="h-12 pr-12 bg-gray-50 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#16641D]/20 focus:border-[#16641D] focus:bg-white transition-all"
+                className="h-12 pr-12 bg-gray-50 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007A3D]/20 focus:border-[#007A3D] focus:bg-white transition-all"
               />
               <button
                 type="button"
@@ -121,7 +121,7 @@ export default function ChangePassword() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password"
                 required
-                className="h-12 pr-12 bg-gray-50 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#16641D]/20 focus:border-[#16641D] focus:bg-white transition-all"
+                className="h-12 pr-12 bg-gray-50 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007A3D]/20 focus:border-[#007A3D] focus:bg-white transition-all"
               />
               <button
                 type="button"
@@ -143,7 +143,7 @@ export default function ChangePassword() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm new password"
                 required
-                className="h-12 pr-12 bg-gray-50 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#16641D]/20 focus:border-[#16641D] focus:bg-white transition-all"
+                className="h-12 pr-12 bg-gray-50 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007A3D]/20 focus:border-[#007A3D] focus:bg-white transition-all"
               />
               <button
                 type="button"
@@ -161,11 +161,11 @@ export default function ChangePassword() {
               {passwordRequirements.map((req, index) => (
                 <li key={index} className="flex items-center gap-2 text-sm">
                   {req.test(newPassword) ? (
-                    <Check className="h-4 w-4 text-[#16641D]" />
+                    <Check className="h-4 w-4 text-[#007A3D]" />
                   ) : (
                     <X className="h-4 w-4 text-gray-300" />
                   )}
-                  <span className={req.test(newPassword) ? "text-[#16641D] font-medium" : "text-gray-500"}>
+                  <span className={req.test(newPassword) ? "text-[#007A3D] font-medium" : "text-gray-500"}>
                     {req.label}
                   </span>
                 </li>
@@ -176,7 +176,7 @@ export default function ChangePassword() {
           <Button
             type="submit"
             disabled={submitting}
-            className="w-full h-12 bg-gradient-to-r from-[#16641D] via-[#1e7a27] to-[#16641D] hover:from-[#145019] hover:via-[#16641D] hover:to-[#145019] text-white font-semibold rounded-xl shadow-lg shadow-[#16641D]/20 transition-all duration-300 bg-[length:200%_100%] disabled:opacity-60"
+            className="w-full h-12 bg-gradient-to-r from-[#007A3D] via-[#00A956] to-[#007A3D] hover:from-[#005C2E] hover:via-[#007A3D] hover:to-[#005C2E] text-white font-semibold rounded-xl shadow-lg shadow-[#007A3D]/20 transition-all duration-300 bg-[length:200%_100%] disabled:opacity-60"
           >
             {submitting ? "Updating..." : "Update Password"}
           </Button>

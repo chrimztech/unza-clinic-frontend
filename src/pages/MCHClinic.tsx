@@ -306,7 +306,7 @@ export default function MCHClinic() {
 
   const stats = [
     { label: "Antenatal Visits", value: antenatalList.length, icon: Baby, color: "#E91E63" },
-    { label: "Immunizations", value: immunizationList.length, icon: Syringe, color: "#16641D" },
+    { label: "Immunizations", value: immunizationList.length, icon: Syringe, color: "#007A3D" },
     { label: "Family Planning", value: fpList.length, icon: Heart, color: "#7C3AED" },
     { label: "High Risk", value: antenatalList.filter((a) => a.riskFactors).length, icon: AlertTriangle, color: "#DC2626" },
   ];
@@ -336,7 +336,7 @@ export default function MCHClinic() {
         </Grid>
 
         {/* EPI Schedule Reference */}
-        <Paper elevation={0} sx={{ p: 3, borderRadius: "16px", border: "1px solid rgba(22,100,29,0.2)", bgcolor: "rgba(22,100,29,0.02)" }}>
+        <Paper elevation={0} sx={{ p: 3, borderRadius: "16px", border: "1px solid rgba(0, 122, 61,0.2)", bgcolor: "rgba(0, 122, 61,0.02)" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
             <Syringe className="h-5 w-5 text-primary" />
             <Typography variant="h6" fontWeight={700}>EPI Schedule (Zambia)</Typography>

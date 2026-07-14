@@ -64,7 +64,7 @@ async function generateFallbackLogo(): Promise<string> {
   canvas.width = 100;
   canvas.height = 100;
   const ctx = canvas.getContext("2d")!;
-  ctx.fillStyle = "#16641D";
+  ctx.fillStyle = "#007A3D";
   ctx.fillRect(0, 0, 100, 100);
   ctx.fillStyle = "white";
   ctx.font = "bold 14px Arial";

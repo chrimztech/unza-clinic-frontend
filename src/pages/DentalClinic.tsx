@@ -181,7 +181,7 @@ export default function DentalClinic() {
   ];
 
   const stats = [
-    { label: "Total Visits", value: records.length, icon: Smile, color: "#16641D" },
+    { label: "Total Visits", value: records.length, icon: Smile, color: "#007A3D" },
     { label: "Extractions", value: records.filter((r) => (r.treatmentPerformed || "").toLowerCase().includes("extraction")).length, icon: AlertTriangle, color: "#DC2626" },
     { label: "Fillings", value: records.filter((r) => (r.treatmentPerformed || "").toLowerCase().includes("filling")).length, icon: CheckCircle2, color: "#1565C0" },
     { label: "Scaling Done", value: records.filter((r) => r.scalingDone).length, icon: Clock, color: "#7C3AED" },

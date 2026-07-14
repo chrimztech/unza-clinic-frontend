@@ -114,7 +114,7 @@ const isControlledSubstance = (itemName: string) =>
 
 const patientTypeBadge = (type: string) => {
   const map: Record<string, { label: string; color: string }> = {
-    STUDENT: { label: "Student", color: "#16641D" },
+    STUDENT: { label: "Student", color: "#007A3D" },
     STAFF: { label: "Staff", color: "#1565C0" },
     STAFF_DEPENDANT: { label: "Dependant", color: "#7B1FA2" },
     NON_UNZA: { label: "Public", color: "#C62828" },
@@ -328,7 +328,7 @@ KEEP OUT OF REACH OF CHILDREN
     const win = window.open("", "_blank");
     if (win) {
       win.document.write(`<!DOCTYPE html><html><head><title>Dispensing Label</title>
-<style>body{margin:0;padding:20px;font-family:monospace}pre{margin:0}.header{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #16641D}.clinic-name{font-size:14px;font-weight:800;color:#16641D;letter-spacing:1px}.clinic-sub{font-size:10px;color:#666}@media print{body{padding:10px}}</style>
+<style>body{margin:0;padding:20px;font-family:monospace}pre{margin:0}.header{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #007A3D}.clinic-name{font-size:14px;font-weight:800;color:#007A3D;letter-spacing:1px}.clinic-sub{font-size:10px;color:#666}@media print{body{padding:10px}}</style>
 </head><body>
 <div class="header">
   <img src="${window.location.origin}/logo.png" alt="UNZA Clinic" style="width:36px;height:36px;object-fit:contain;" />
@@ -413,7 +413,7 @@ KEEP OUT OF REACH OF CHILDREN
         <Grid container spacing={2}>
           {[
             { label: "Pending", value: pending, icon: Clock, color: "#F59E0B", bg: "rgba(245,158,11,0.1)" },
-            { label: "Dispensed Today", value: dispensed, icon: CheckCircle2, color: "#16641D", bg: "rgba(22,100,29,0.1)" },
+            { label: "Dispensed Today", value: dispensed, icon: CheckCircle2, color: "#007A3D", bg: "rgba(0, 122, 61,0.1)" },
             { label: "Returned", value: returned, icon: RefreshCw, color: "#7C3AED", bg: "rgba(124,58,237,0.1)" },
             { label: "Controlled Substances", value: controlled, icon: ShieldAlert, color: "#DC2626", bg: "rgba(220,38,38,0.1)" },
           ].map((card) => (

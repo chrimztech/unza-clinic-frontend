@@ -36,8 +36,8 @@ export default function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarP
          "& .MuiDrawer-paper": {
            width: drawerWidth,
            boxSizing: "border-box",
-           background: "linear-gradient(180deg, #0f3d16 0%, #1a5f2a 40%, #0f3d16 80%)",
-           borderRight: "1px solid rgba(22, 100, 29, 0.2)",
+           background: "linear-gradient(180deg, #024023 0%, #1a5f2a 40%, #024023 80%)",
+           borderRight: "1px solid rgba(0, 122, 61, 0.2)",
            overflowX: "hidden",
            transition: "width 0.3s ease",
            display: "flex",
@@ -55,9 +55,9 @@ export default function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarP
             alignItems: "center",
             gap: 1.5,
             p: 2.5,
-            borderBottom: "1px solid rgba(212, 175, 55, 0.2)",
+            borderBottom: "1px solid rgba(242, 169, 0, 0.2)",
             minHeight: 72,
-            background: "linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.05), transparent)",
+            background: "linear-gradient(90deg, transparent, rgba(242, 169, 0, 0.05), transparent)",
           }}
         >
           <Box
@@ -69,14 +69,14 @@ export default function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarP
               width: 44,
               height: 44,
               borderRadius: "12px",
-              background: "linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.1) 100%)",
-              boxShadow: "0 0 20px rgba(212, 175, 55, 0.3)",
+              background: "linear-gradient(135deg, rgba(242, 169, 0, 0.2) 0%, rgba(242, 169, 0, 0.1) 100%)",
+              boxShadow: "0 0 20px rgba(242, 169, 0, 0.3)",
               overflow: "hidden",
               flexShrink: 0,
               transition: "all 0.3s ease",
               "&:hover": {
                 transform: "scale(1.05)",
-                boxShadow: "0 0 30px rgba(212, 175, 55, 0.5)",
+                boxShadow: "0 0 30px rgba(242, 169, 0, 0.5)",
               }
             }}
           >
@@ -84,10 +84,10 @@ export default function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarP
           </Box>
           {!collapsed && (
             <Box sx={{ overflow: "hidden", opacity: 1, transition: "opacity 0.2s" }}>
-              <Typography variant="h5" fontWeight={800} sx={{ fontSize: "1rem", color: "white", letterSpacing: "0.05em", textShadow: "0 0 10px rgba(212, 175, 55, 0.5)" }}>
+              <Typography variant="h5" fontWeight={800} sx={{ fontSize: "1rem", color: "white", letterSpacing: "0.05em", textShadow: "0 0 10px rgba(242, 169, 0, 0.5)" }}>
                 UNZA Clinic
               </Typography>
-              <Typography variant="caption" sx={{ fontSize: "0.625rem", color: "#D4AF37", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              <Typography variant="caption" sx={{ fontSize: "0.625rem", color: "#F2A900", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
                 Health Management System
               </Typography>
             </Box>
@@ -132,9 +132,9 @@ export default function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarP
                         position: "relative",
                         overflow: "hidden",
                         color: isActive ? "white" : "rgba(200, 245, 200, 0.8)",
-                        backgroundColor: isActive ? "rgba(22, 100, 29, 0.4)" : "transparent",
+                        backgroundColor: isActive ? "rgba(0, 122, 61, 0.4)" : "transparent",
                         "&:hover": {
-                          backgroundColor: "rgba(22, 100, 29, 0.25)",
+                          backgroundColor: "rgba(0, 122, 61, 0.25)",
                           color: "white",
                         },
                         transition: "all 0.2s ease",
@@ -145,15 +145,15 @@ export default function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarP
                           top: 0,
                           bottom: 0,
                           width: "3px",
-                          background: "linear-gradient(180deg, #D4AF37 0%, #D4AF37 100%)",
+                          background: "linear-gradient(180deg, #F2A900 0%, #F2A900 100%)",
                         } : undefined,
                       }}
                     >
                       <ListItemIcon
                         sx={{
                           minWidth: 36,
-                          color: isActive ? "#D4AF37" : "rgba(200, 245, 200, 0.7)",
-                          "&:hover": { color: "#D4AF37" },
+                          color: isActive ? "#F2A900" : "rgba(200, 245, 200, 0.7)",
+                          "&:hover": { color: "#F2A900" },
                           transition: "color 0.2s ease",
                         }}
                       >
@@ -180,7 +180,7 @@ export default function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarP
         </Box>
 
         {/* Collapse Button */}
-        <Divider sx={{ borderColor: "rgba(22, 100, 29, 0.3)", mx: 1 }} />
+        <Divider sx={{ borderColor: "rgba(0, 122, 61, 0.3)", mx: 1 }} />
         <Box sx={{ p: 1 }}>
           <ListItemButton
             onClick={() => onCollapsedChange(!collapsed)}
@@ -188,7 +188,7 @@ export default function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarP
               borderRadius: "8px",
               color: "rgba(200, 245, 200, 0.8)",
               "&:hover": {
-                backgroundColor: "rgba(22, 100, 29, 0.25)",
+                backgroundColor: "rgba(0, 122, 61, 0.25)",
                 color: "white",
               },
             }}
@@ -197,7 +197,7 @@ export default function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarP
               sx={{
                 minWidth: 36,
                 color: "rgba(200, 245, 200, 0.7)",
-                "&:hover": { color: "#D4AF37" },
+                "&:hover": { color: "#F2A900" },
               }}
             >
               {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}

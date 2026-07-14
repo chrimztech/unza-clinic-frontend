@@ -4,28 +4,28 @@ const themeOptions: ThemeOptions = {
   palette: {
     mode: "light",
     primary: {
-      main: "#16641D",
-      light: "#1e7a29",
-      dark: "#0f3d16",
+      main: "#007A3D",
+      light: "#00A956",
+      dark: "#024023",
       contrastText: "#ffffff",
     },
     secondary: {
-      main: "#D4AF37",
-      light: "#deb840",
-      dark: "#946d22",
+      main: "#F2A900",
+      light: "#FFC233",
+      dark: "#B37D00",
       contrastText: "#000000",
     },
     error: {
       main: "#DC2626",
     },
     warning: {
-      main: "#D4AF37",
+      main: "#F2A900",
     },
     success: {
-      main: "#16641D",
+      main: "#007A3D",
     },
     info: {
-      main: "#D4AF37",
+      main: "#F2A900",
     },
     background: {
       default: "#f9fafb",
@@ -66,7 +66,7 @@ const themeOptions: ThemeOptions = {
         },
         contained: {
           "&:hover": {
-            boxShadow: "0 6px 20px rgba(22, 100, 29, 0.3)",
+            boxShadow: "0 6px 20px rgba(0, 122, 61, 0.3)",
           },
         },
       },
@@ -114,7 +114,7 @@ const themeOptions: ThemeOptions = {
       styleOverrides: {
         root: {
           "&:hover": {
-            backgroundColor: "rgba(22, 100, 29, 0.04)",
+            backgroundColor: "rgba(0, 122, 61, 0.04)",
           },
         },
       },
@@ -155,7 +155,7 @@ const themeOptions: ThemeOptions = {
       styleOverrides: {
         root: {
           "&:hover": {
-            backgroundColor: "rgba(22, 100, 29, 0.08)",
+            backgroundColor: "rgba(0, 122, 61, 0.08)",
           },
         },
       },

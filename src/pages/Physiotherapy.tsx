@@ -227,7 +227,7 @@ export default function Physiotherapy() {
 
   const stats = [
     { label: "Active Referrals", value: referrals.filter((r) => r.status === "pending").length, icon: Users, color: "#7C3AED" },
-    { label: "Sessions Today", value: sessions.filter((s) => s.sessionDate === new Date().toISOString().slice(0, 10)).length, icon: Calendar, color: "#16641D" },
+    { label: "Sessions Today", value: sessions.filter((s) => s.sessionDate === new Date().toISOString().slice(0, 10)).length, icon: Calendar, color: "#007A3D" },
     { label: "Total Sessions", value: sessions.length, icon: Activity, color: "#1565C0" },
     { label: "Avg Pain Reduction", value: sessions.length > 0 ? `${Math.round(sessions.reduce((sum, s) => sum + (s.painScoreBefore - s.painScoreAfter), 0) / sessions.length)}pts` : "—", icon: TrendingUp, color: "#F59E0B" },
   ];

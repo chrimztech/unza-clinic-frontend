@@ -31,16 +31,16 @@ export function Badge({ variant = "default", children, sx, ...props }: BadgeProp
         fontWeight: 500,
         borderRadius: "9999px",
         ...(variant === "primary" && {
-          backgroundColor: "rgba(22, 100, 29, 0.1)",
-          color: "#16641D",
-          "& .MuiChip-icon": { color: "#16641D" },
+          backgroundColor: "rgba(0, 122, 61, 0.1)",
+          color: "#007A3D",
+          "& .MuiChip-icon": { color: "#007A3D" },
         }),
         ...(variant === "gold" && {
-          backgroundColor: "rgba(212, 175, 55, 0.1)",
-          color: "#946d22",
+          backgroundColor: "rgba(242, 169, 0, 0.1)",
+          color: "#B37D00",
         }),
         ...(variant === "success" && {
-          backgroundColor: "rgba(22, 100, 29, 0.1)",
+          backgroundColor: "rgba(0, 122, 61, 0.1)",
         }),
         ...sx,
       }}

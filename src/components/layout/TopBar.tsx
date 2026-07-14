@@ -94,7 +94,7 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
          sx={{
            background: 'linear-gradient(90deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
            backdropFilter: 'blur(20px) saturate(180%)',
-           borderBottom: '1px solid rgba(212, 175, 55, 0.15)',
+           borderBottom: '1px solid rgba(242, 169, 0, 0.15)',
            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
            zIndex: (theme) => theme.zIndex.drawer + 1,
            position: 'sticky',
@@ -104,11 +104,11 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
         <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
            {/* Title Section */}
            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-             <Typography variant="h5" sx={{ fontWeight: 800, fontSize: '1.375rem', lineHeight: 1.2, color: '#0f3d16', fontFamily: '"Plus Jakarta Sans", sans-serif', letterSpacing: '-0.5px', textShadow: '0 0 10px rgba(15, 61, 22, 0.3)' }}>
+             <Typography variant="h5" sx={{ fontWeight: 800, fontSize: '1.375rem', lineHeight: 1.2, color: '#024023', fontFamily: '"Plus Jakarta Sans", sans-serif', letterSpacing: '-0.5px', textShadow: '0 0 10px rgba(15, 61, 22, 0.3)' }}>
                {title}
              </Typography>
              {subtitle && (
-               <Typography variant="body2" sx={{ color: '#D4AF37', fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+               <Typography variant="body2" sx={{ color: '#F2A900', fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                  {subtitle}
                </Typography>
              )}
@@ -127,15 +127,15 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
                    input: {
                      startAdornment: (
                        <InputAdornment position="start">
-                         <SearchIcon className="h-4 w-4" style={{ color: '#D4AF37' }} />
+                         <SearchIcon className="h-4 w-4" style={{ color: '#F2A900' }} />
                        </InputAdornment>
                      ),
                    },
                  }}
                  sx={{
                    width: 220,
-                   background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.04) 100%)',
-                   border: '1px solid rgba(212, 175, 55, 0.2)',
+                   background: 'linear-gradient(135deg, rgba(242, 169, 0, 0.08) 0%, rgba(242, 169, 0, 0.04) 100%)',
+                   border: '1px solid rgba(242, 169, 0, 0.2)',
                    '& .MuiOutlinedInput-root': {
                      borderRadius: '12px',
                      backgroundColor: 'transparent',
@@ -146,9 +146,9 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
                    cursor: 'pointer',
                    transition: 'all 0.3s ease',
                    '&:hover': {
-                     background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(212, 175, 55, 0.06) 100%)',
+                     background: 'linear-gradient(135deg, rgba(242, 169, 0, 0.12) 0%, rgba(242, 169, 0, 0.06) 100%)',
                      transform: 'translateY(-1px)',
-                     boxShadow: '0 4px 12px rgba(212, 175, 55, 0.15)',
+                     boxShadow: '0 4px 12px rgba(242, 169, 0, 0.15)',
                    }
                  }}
                />
@@ -161,14 +161,14 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
                  size="sm" 
                  onClick={promptInstall}
                  sx={{ display: { xs: 'none', md: 'flex' },
-                       background: 'linear-gradient(135deg, #16641D 0%, #1e7a29 100%)',
+                       background: 'linear-gradient(135deg, #007A3D 0%, #00A956 100%)',
                        color: 'white',
                        border: 'none',
-                       boxShadow: '0 4px 12px rgba(22, 100, 29, 0.3)',
+                       boxShadow: '0 4px 12px rgba(0, 122, 61, 0.3)',
                        '&:hover': {
-                         background: 'linear-gradient(135deg, #0f3d16 0%, #16641D 100%)',
+                         background: 'linear-gradient(135deg, #024023 0%, #007A3D 100%)',
                          transform: 'translateY(-2px)',
-                         boxShadow: '0 6px 16px rgba(22, 100, 29, 0.4)',
+                         boxShadow: '0 6px 16px rgba(0, 122, 61, 0.4)',
                        }
                      }}
                >
@@ -199,7 +199,7 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
                   sx={{
                     width: 40,
                     height: 40,
-                    background: 'linear-gradient(135deg, #16641D 0%, #1e7a29 100%)',
+                    background: 'linear-gradient(135deg, #007A3D 0%, #00A956 100%)',
                     color: 'white',
                   }}
                 >

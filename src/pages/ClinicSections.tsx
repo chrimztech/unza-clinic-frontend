@@ -45,7 +45,7 @@ const sectionBlueprints: SectionBlueprint[] = [
     id: "reception",
     title: "Reception & Walk-In",
     icon: Users,
-    color: "text-[#16641D]",
+    color: "text-[#007A3D]",
     responsibilities: [
       "Register walk-in students, staff, dependants, and external clients",
       "Open a visit encounter and route the client to the next clinical unit",
@@ -278,7 +278,7 @@ export default function ClinicSections() {
               <button
                 key={section.id}
                 onClick={() => setSelectedSection(section.id)}
-                className={`rounded-2xl border p-5 text-left transition ${selectedSection === section.id ? "border-[#16641D] bg-[#16641D]/5" : "border-border bg-card hover:border-[#16641D]/40"}`}
+                className={`rounded-2xl border p-5 text-left transition ${selectedSection === section.id ? "border-[#007A3D] bg-[#007A3D]/5" : "border-border bg-card hover:border-[#007A3D]/40"}`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <section.icon className={`h-5 w-5 ${section.color}`} />
@@ -294,7 +294,7 @@ export default function ClinicSections() {
         <Tabs value={selectedSection} onValueChange={setSelectedSection} className="space-y-6">
           <TabsList className="flex h-auto flex-wrap justify-start gap-2 bg-transparent p-0">
             {sectionBlueprints.map((section) => (
-              <TabsTrigger key={section.id} value={section.id} className="border border-border bg-card data-[state=active]:border-[#16641D] data-[state=active]:bg-[#16641D] data-[state=active]:text-white">
+              <TabsTrigger key={section.id} value={section.id} className="border border-border bg-card data-[state=active]:border-[#007A3D] data-[state=active]:bg-[#007A3D] data-[state=active]:text-white">
                 {section.title}
               </TabsTrigger>
             ))}

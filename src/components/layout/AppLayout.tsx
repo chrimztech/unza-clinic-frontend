@@ -112,8 +112,8 @@ return (
                  disabled={savingPassword}
                  onClick={handlePasswordChange}
                  sx={{
-                   background: "linear-gradient(135deg, #16641D 0%, #1e7a29 100%)",
-                   "&:hover": { background: "linear-gradient(135deg, #0f3d16 0%, #16641D 100%)" },
+                   background: "linear-gradient(135deg, #007A3D 0%, #00A956 100%)",
+                   "&:hover": { background: "linear-gradient(135deg, #024023 0%, #007A3D 100%)" },
                  }}
                >
                  {savingPassword ? "Saving..." : "Update Password"}

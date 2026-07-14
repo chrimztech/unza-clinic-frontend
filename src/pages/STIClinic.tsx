@@ -185,7 +185,7 @@ export default function STIClinic() {
   const stats = [
     { label: "Total Cases", value: records.length, icon: Users, color: "#7C3AED" },
     { label: "HIV Reactive", value: records.filter((r) => r.hivTest === "Reactive").length, icon: ShieldAlert, color: "#DC2626" },
-    { label: "Partner Notified", value: records.filter((r) => r.partnerNotification).length, icon: CheckCircle2, color: "#16641D" },
+    { label: "Partner Notified", value: records.filter((r) => r.partnerNotification).length, icon: CheckCircle2, color: "#007A3D" },
     { label: "Pending Follow-Up", value: records.filter((r) => r.followUpDate && new Date(r.followUpDate) > new Date()).length, icon: AlertTriangle, color: "#F59E0B" },
   ];
 

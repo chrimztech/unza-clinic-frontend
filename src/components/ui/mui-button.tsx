@@ -49,26 +49,26 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           boxShadow: "none",
           textTransform: "none",
           ...(variant === "primary" && {
-            backgroundColor: "#16641D",
+            backgroundColor: "#007A3D",
             "&:hover": {
-              backgroundColor: "#1e7a29",
-              boxShadow: "0 6px 20px rgba(22, 100, 29, 0.3)",
+              backgroundColor: "#00A956",
+              boxShadow: "0 6px 20px rgba(0, 122, 61, 0.3)",
             },
           }),
           ...(variant === "gold" && {
-            backgroundColor: "#D4AF37",
+            backgroundColor: "#F2A900",
             color: "#000",
             "&:hover": {
-              backgroundColor: "#deb840",
-              boxShadow: "0 6px 20px rgba(212, 175, 55, 0.35)",
+              backgroundColor: "#FFC233",
+              boxShadow: "0 6px 20px rgba(242, 169, 0, 0.35)",
             },
           }),
           ...(variant === "outline" && {
-            borderColor: "#16641D",
-            color: "#16641D",
+            borderColor: "#007A3D",
+            color: "#007A3D",
             "&:hover": {
-              borderColor: "#16641D",
-              backgroundColor: "rgba(22, 100, 29, 0.08)",
+              borderColor: "#007A3D",
+              backgroundColor: "rgba(0, 122, 61, 0.08)",
             },
           }),
           ...(variant === "ghost" && {

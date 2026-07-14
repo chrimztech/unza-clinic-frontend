@@ -172,7 +172,7 @@ export default function EyeClinic() {
 
   const stats = [
     { label: "Total Visits", value: records.length, icon: Eye, color: "#1565C0" },
-    { label: "Spectacles Rx", value: records.filter((r) => r.spectaclesPrescribed).length, icon: Glasses, color: "#16641D" },
+    { label: "Spectacles Rx", value: records.filter((r) => r.spectaclesPrescribed).length, icon: Glasses, color: "#007A3D" },
     { label: "Referrals Made", value: records.filter((r) => r.referralNeeded).length, icon: AlertTriangle, color: "#DC2626" },
     { label: "Resolved", value: records.filter((r) => r.status === "completed").length, icon: CheckCircle2, color: "#7C3AED" },
   ];

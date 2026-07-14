@@ -265,7 +265,7 @@ export default function PatientDetail() {
 <style>
   body{margin:0;padding:0;font-family:'Segoe UI',sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh}
   .card{background:#fff;width:340px;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.15);page-break-inside:avoid}
-  .header{background:linear-gradient(135deg,#16641D,#2d9e39);padding:20px;color:#fff;text-align:center}
+  .header{background:linear-gradient(135deg,#007A3D,#2d9e39);padding:20px;color:#fff;text-align:center}
   .logo-img{width:36px;height:36px;object-fit:contain;display:block;margin:0 auto 4px}
   .logo{font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;opacity:0.9}
   .subtitle{font-size:11px;opacity:0.75;margin-top:2px}
@@ -333,7 +333,7 @@ export default function PatientDetail() {
                     .timeline { position: relative; padding-left: 30px; }
                     .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #e5e5e5; }
                     .event { position: relative; margin-bottom: 15px; }
-                    .event::before { content: ''; position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: #16641D; }
+                    .event::before { content: ''; position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: #007A3D; }
                     .event-time { font-size: 12px; color: #666; }
                     .event-title { font-weight: 600; }
                     .event-desc { font-size: 14px; color: #444; }
@@ -346,11 +346,11 @@ export default function PatientDetail() {
                   <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
                     <img src="${window.location.origin}/logo.png" alt="UNZA Clinic" style="width:52px;height:52px;object-fit:contain;" />
                     <div>
-                      <div style="font-size:20px;font-weight:800;color:#16641D;letter-spacing:1px;">UNZA Clinic</div>
+                      <div style="font-size:20px;font-weight:800;color:#007A3D;letter-spacing:1px;">UNZA Clinic</div>
                       <div style="font-size:12px;color:#666;">University of Zambia Health Services</div>
                     </div>
                   </div>
-                  <hr style="border:none;border-top:2px solid #16641D;margin:8px 0 16px;" />
+                  <hr style="border:none;border-top:2px solid #007A3D;margin:8px 0 16px;" />
                   <h1>Patient Record</h1>
                   <p class="meta">${patient.name} - ${patient.clinic_number || patient.patient_id}</p>
                   <div class="grid">

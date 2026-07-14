@@ -183,7 +183,7 @@ export default function DoctorSchedule() {
           <div className="text-center">
             <p className="text-sm font-semibold text-gray-800">{weekRangeLabel(weekOf)}</p>
             {isCurrentWeek && (
-              <span className="text-[11px] text-[#16641D] font-medium">Current Week</span>
+              <span className="text-[11px] text-[#007A3D] font-medium">Current Week</span>
             )}
           </div>
 
@@ -191,7 +191,7 @@ export default function DoctorSchedule() {
             {!isCurrentWeek && (
               <button
                 onClick={() => setWeekOf(getWeekMonday(new Date()))}
-                className="text-[11px] px-2.5 py-1 rounded border border-[#16641D]/40 text-[#16641D] hover:bg-[#16641D]/10 transition-colors font-medium"
+                className="text-[11px] px-2.5 py-1 rounded border border-[#007A3D]/40 text-[#007A3D] hover:bg-[#007A3D]/10 transition-colors font-medium"
               >
                 Today
               </button>
@@ -213,7 +213,7 @@ export default function DoctorSchedule() {
               variant={selectedDepartment === null ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedDepartment(null)}
-              className={selectedDepartment === null ? "bg-gradient-to-r from-[#16641D] to-[#1e7a29] text-white" : ""}
+              className={selectedDepartment === null ? "bg-gradient-to-r from-[#007A3D] to-[#00A956] text-white" : ""}
             >
               All
             </Button>
@@ -223,7 +223,7 @@ export default function DoctorSchedule() {
                 variant={selectedDepartment === dept ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedDepartment(dept)}
-                className={selectedDepartment === dept ? "bg-gradient-to-r from-[#16641D] to-[#1e7a29] text-white" : ""}
+                className={selectedDepartment === dept ? "bg-gradient-to-r from-[#007A3D] to-[#00A956] text-white" : ""}
               >
                 {dept}
               </Button>
@@ -232,7 +232,7 @@ export default function DoctorSchedule() {
           {canManageSchedules && (
             <Button
               size="sm"
-              className="bg-gradient-to-r from-[#16641D] to-[#1e7a29] text-white shrink-0"
+              className="bg-gradient-to-r from-[#007A3D] to-[#00A956] text-white shrink-0"
               onClick={() => setShowAdd(true)}
             >
               <Plus className="h-4 w-4 mr-1" /> Add Entry
@@ -249,10 +249,10 @@ export default function DoctorSchedule() {
               <div key={day} className="rounded-xl bg-white shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-3 border-b border-gray-100 bg-gray-50/50">
                   <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                    <CalendarClock className="h-4 w-4 text-[#16641D]" />
+                    <CalendarClock className="h-4 w-4 text-[#007A3D]" />
                     <span>{label}</span>
                     {grouped[day]?.length > 0 && (
-                      <span className="ml-auto text-[11px] bg-[#16641D]/10 text-[#16641D] rounded-full px-2 py-0.5 font-medium">
+                      <span className="ml-auto text-[11px] bg-[#007A3D]/10 text-[#007A3D] rounded-full px-2 py-0.5 font-medium">
                         {grouped[day].length}
                       </span>
                     )}
@@ -265,7 +265,7 @@ export default function DoctorSchedule() {
                     grouped[day].map((entry) => (
                       <div
                         key={entry.id}
-                        className="group rounded-md px-3 py-2 text-sm border bg-[#16641D]/5 text-[#16641D] border-[#16641D]/20 relative"
+                        className="group rounded-md px-3 py-2 text-sm border bg-[#007A3D]/5 text-[#007A3D] border-[#007A3D]/20 relative"
                       >
                         {canManageSchedules && (<button
                           onClick={() => handleDeleteEntry(entry.id)}
@@ -326,7 +326,7 @@ export default function DoctorSchedule() {
                       key={p}
                       type="button"
                       onClick={() => applyPreset(p)}
-                      className="text-[11px] px-2 py-0.5 rounded border border-[#16641D]/40 text-[#16641D] hover:bg-[#16641D]/10 transition-colors"
+                      className="text-[11px] px-2 py-0.5 rounded border border-[#007A3D]/40 text-[#007A3D] hover:bg-[#007A3D]/10 transition-colors"
                     >
                       {p === "weekdays" ? "Mon–Fri" : p === "weekends" ? "Weekends" : "All Week"}
                     </button>
@@ -339,7 +339,7 @@ export default function DoctorSchedule() {
                     key={day}
                     className={`flex items-center gap-1.5 cursor-pointer rounded-md border px-2 py-1.5 text-xs transition-colors ${
                       selectedDays.includes(day)
-                        ? "border-[#16641D] bg-[#16641D]/8 text-[#16641D] font-medium"
+                        ? "border-[#007A3D] bg-[#007A3D]/8 text-[#007A3D] font-medium"
                         : "border-gray-200 text-gray-600 hover:border-gray-300"
                     }`}
                   >

@@ -272,7 +272,7 @@ export default function ARTClinic() {
   ];
 
   const stats = [
-    { label: "Active Patients", value: artPatients.filter((p) => p.status === "active").length, icon: Users, color: "#16641D" },
+    { label: "Active Patients", value: artPatients.filter((p) => p.status === "active").length, icon: Users, color: "#007A3D" },
     { label: "Suppressed VL", value: artPatients.filter((p) => (p.vlLatest ?? 999999) < 1000).length, icon: ShieldCheck, color: "#1565C0" },
     { label: "Defaulters", value: defaulters.length, icon: AlertTriangle, color: "#DC2626" },
     { label: "TB Co-infection", value: artPatients.filter((p) => p.tbTreatment).length, icon: Activity, color: "#F59E0B" },

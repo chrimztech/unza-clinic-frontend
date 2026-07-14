@@ -20,10 +20,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             borderWidth: "1px",
           },
           "&:hover .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#16641D",
+            borderColor: "#007A3D",
           },
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#16641D",
+            borderColor: "#007A3D",
             borderWidth: "2px",
           },
           ...sx,

@@ -103,7 +103,7 @@ export default function RecordsDesk() {
               <button
                 key={patient.patient_id}
                 onClick={() => navigate(`/patients/${patient.patient_id}`)}
-                className="rounded-xl border border-border p-4 text-left transition hover:border-[#16641D]/40 hover:bg-[#16641D]/5"
+                className="rounded-xl border border-border p-4 text-left transition hover:border-[#007A3D]/40 hover:bg-[#007A3D]/5"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>

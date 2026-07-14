@@ -32,7 +32,7 @@ interface DashboardPatient {
   date: string;
 }
 
-const COLORS = ["#16641D", "#D4AF37", "#2E8B57", "#4B5563", "#B8860B"];
+const COLORS = ["#007A3D", "#F2A900", "#2E8B57", "#4B5563", "#B8860B"];
 
 const SECTION_ROUTES: Record<string, string> = {
   Reception: "/patients/register",
@@ -186,7 +186,7 @@ export default function Dashboard() {
             borderRadius: "16px",
             border: "1px solid rgba(0,0,0,0.08)",
             mb: 4,
-            background: "linear-gradient(135deg, rgba(22, 100, 29, 0.02) 0%, rgba(212, 175, 55, 0.02) 100%)",
+            background: "linear-gradient(135deg, rgba(0, 122, 61, 0.02) 0%, rgba(242, 169, 0, 0.02) 100%)",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
@@ -204,11 +204,11 @@ export default function Dashboard() {
                 onClick={() => navigate(action.path)}
                 sx={{
                   borderRadius: "8px",
-                  borderColor: "rgba(22, 100, 29, 0.2)",
+                  borderColor: "rgba(0, 122, 61, 0.2)",
                   color: "primary.main",
                   "&:hover": {
                     borderColor: "primary.main",
-                    backgroundColor: "rgba(22, 100, 29, 0.08)",
+                    backgroundColor: "rgba(0, 122, 61, 0.08)",
                   }
                 }}
               >
@@ -244,7 +244,7 @@ export default function Dashboard() {
                     border: "1px solid rgba(0,0,0,0.08)",
                     "&:hover": {
                       borderColor: "primary.main",
-                      backgroundColor: "rgba(22, 100, 29, 0.04)",
+                      backgroundColor: "rgba(0, 122, 61, 0.04)",
                       transform: "translateY(-4px)",
                       boxShadow: "0 8px 25px rgba(0,0,0,0.12)",
                     },
@@ -321,7 +321,7 @@ export default function Dashboard() {
                   <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={{ stroke: "#e5e7eb" }} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="patients" fill="#16641D" radius={[6, 6, 0, 0]} name="Patients" />
+                  <Bar dataKey="patients" fill="#007A3D" radius={[6, 6, 0, 0]} name="Patients" />
                 </BarChart>
               </ResponsiveContainer>
             </Paper>
@@ -445,9 +445,9 @@ export default function Dashboard() {
 
         {/* Ward Status (WebSocket push) */}
         {wardStatus && (
-          <Paper elevation={0} sx={{ p: 3, borderRadius: "16px", border: "1px solid rgba(22,100,29,0.2)", bgcolor: "rgba(22,100,29,0.02)", mb: 3 }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: "16px", border: "1px solid rgba(0, 122, 61,0.2)", bgcolor: "rgba(0, 122, 61,0.02)", mb: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-              <BedDouble className="h-5 w-5" style={{ color: "#16641D" }} />
+              <BedDouble className="h-5 w-5" style={{ color: "#007A3D" }} />
               <Typography variant="h6" fontWeight={700} color="primary.main" sx={{ fontSize: "1rem" }}>
                 Live Ward Status
               </Typography>
@@ -455,13 +455,13 @@ export default function Dashboard() {
             </Box>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
               {(wardStatus.wards || []).map((ward: any, i: number) => (
-                <Box key={i} sx={{ px: 2, py: 1, borderRadius: "8px", border: "1px solid rgba(22,100,29,0.2)", bgcolor: "rgba(22,100,29,0.06)" }}>
+                <Box key={i} sx={{ px: 2, py: 1, borderRadius: "8px", border: "1px solid rgba(0, 122, 61,0.2)", bgcolor: "rgba(0, 122, 61,0.06)" }}>
                   <Typography variant="body2" fontWeight={600}>{ward.ward || ward.name}</Typography>
                   <Typography variant="caption" color="text.secondary">{ward.occupied ?? ward.active}/{ward.total ?? ward.capacity} beds</Typography>
                 </Box>
               ))}
               {wardStatus.totalOccupied !== undefined && (
-                <Box sx={{ px: 2, py: 1, borderRadius: "8px", border: "1px solid rgba(22,100,29,0.3)", bgcolor: "rgba(22,100,29,0.1)" }}>
+                <Box sx={{ px: 2, py: 1, borderRadius: "8px", border: "1px solid rgba(0, 122, 61,0.3)", bgcolor: "rgba(0, 122, 61,0.1)" }}>
                   <Typography variant="body2" fontWeight={700} color="primary.main">
                     Total: {wardStatus.totalOccupied}/{wardStatus.totalBeds} occupied
                   </Typography>
@@ -489,11 +489,11 @@ export default function Dashboard() {
                   endIcon={<ArrowRight className="h-4 w-4" />}
                   onClick={() => navigate("/patients")}
                   sx={{
-                    color: "#16641D",
-                    borderColor: "#16641D",
+                    color: "#007A3D",
+                    borderColor: "#007A3D",
                     "&:hover": {
-                      borderColor: "#16641D",
-                      backgroundColor: "rgba(22, 100, 29, 0.08)",
+                      borderColor: "#007A3D",
+                      backgroundColor: "rgba(0, 122, 61, 0.08)",
                     }
                   }}
                 >

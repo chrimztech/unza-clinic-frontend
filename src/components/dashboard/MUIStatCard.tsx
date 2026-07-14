@@ -17,7 +17,7 @@ export default function StatCard({ title, value, change, changeType = "neutral",
 
     const IconTrend = changeType === "positive" ? TrendingUp : changeType === "negative" ? TrendingDown : Minus;
     const colorMap = {
-      positive: { color: "success.main", bg: "rgba(22, 100, 29, 0.08)" },
+      positive: { color: "success.main", bg: "rgba(0, 122, 61, 0.08)" },
       negative: { color: "error.main", bg: "rgba(220, 38, 38, 0.08)" },
       neutral: { color: "text.secondary", bg: "rgba(0, 0, 0, 0.06)" }
     };
@@ -45,9 +45,9 @@ export default function StatCard({ title, value, change, changeType = "neutral",
   };
 
   const iconBgSx = {
-    positive: { backgroundColor: "rgba(22, 100, 29, 0.08)" },
+    positive: { backgroundColor: "rgba(0, 122, 61, 0.08)" },
     negative: { backgroundColor: "rgba(220, 38, 38, 0.08)" },
-    neutral: { backgroundColor: "rgba(212, 175, 55, 0.08)" }
+    neutral: { backgroundColor: "rgba(242, 169, 0, 0.08)" }
   };
 
   const iconColor = {
@@ -69,7 +69,7 @@ export default function StatCard({ title, value, change, changeType = "neutral",
         "&:hover": {
           boxShadow: "0 8px 30px rgba(0,0,0,0.1)",
           transform: "translateY(-4px)",
-          borderColor: "rgba(212, 175, 55, 0.3)",
+          borderColor: "rgba(242, 169, 0, 0.3)",
         },
         "&::before": {
           content: '""',
@@ -78,7 +78,7 @@ export default function StatCard({ title, value, change, changeType = "neutral",
           left: 0,
           right: 0,
           height: "3px",
-          background: "linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent)",
+          background: "linear-gradient(90deg, transparent, rgba(242, 169, 0, 0.3), transparent)",
           opacity: 0,
           transition: "opacity 0.3s ease",
         },
@@ -109,7 +109,7 @@ export default function StatCard({ title, value, change, changeType = "neutral",
             ...iconBgSx[changeType],
           }}
         >
-          <Icon className="h-5 w-5" style={{ color: changeType === "positive" ? "#16641D" : changeType === "negative" ? "#DC2626" : "#D4AF37" }} />
+          <Icon className="h-5 w-5" style={{ color: changeType === "positive" ? "#007A3D" : changeType === "negative" ? "#DC2626" : "#F2A900" }} />
         </Box>
       </Box>
     </Paper>

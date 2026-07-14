@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 
-const PIE_COLORS = ["#16641D", "#D4AF37", "#0EA5E9", "#F97316", "#7C3AED", "#EC4899", "#14B8A6", "#F59E0B"];
+const PIE_COLORS = ["#007A3D", "#F2A900", "#0EA5E9", "#F97316", "#7C3AED", "#EC4899", "#14B8A6", "#F59E0B"];
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
@@ -553,7 +553,7 @@ export default function Reports() {
                     <XAxis type="number" tick={{ fontSize: 12 }} stroke="hsl(210 10% 46%)" />
                     <YAxis type="category" dataKey="complaint" tick={{ fontSize: 11 }} stroke="hsl(210 10% 46%)" width={200} />
                     <Tooltip formatter={(v) => [v, "Cases"]} />
-                    <Bar dataKey="count" fill="#16641D" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="count" fill="#007A3D" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
