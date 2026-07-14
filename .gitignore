@@ -1,0 +1,39 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Local environment overrides (may contain machine-specific secrets)
+.env
+.env.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Build artifacts
+tsconfig.tsbuildinfo
+vite.config.ts.timestamp-*.mjs
+
+# Backend has its own separate git repository
+/backend/
+
+# Claude Code local/runtime state (not meant to be shared)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
