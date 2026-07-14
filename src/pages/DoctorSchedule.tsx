@@ -168,7 +168,7 @@ export default function DoctorSchedule() {
   return (
     <div>
       <TopBar title="Staff Timetable" subtitle="Department rota for doctors, nurses, reception, pharmacy, laboratory and other units" />
-      <div className="pl-0 pr-6 pt-6 space-y-4">
+      <div className="p-6 space-y-4">
 
         {/* Week navigator */}
         <div className="flex items-center justify-between bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">

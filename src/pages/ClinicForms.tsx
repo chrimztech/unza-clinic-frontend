@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Download, FileText, Printer, Save, Search, Sparkles } from "lucide-react";
 import { generateMedicalFitnessCertificate } from "@/lib/pdf-export";
 import api from "@/lib/api";
@@ -463,6 +464,7 @@ export default function ClinicForms() {
   const [formSearch, setFormSearch] = useState("");
   const [savedTypeFilter, setSavedTypeFilter] = useState<string>("all");
   const [catalogSearch, setCatalogSearch] = useState("");
+  const [expandedFeeSections, setExpandedFeeSections] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     async function load() {
@@ -964,37 +966,50 @@ export default function ClinicForms() {
             </div>
           </div>
           <div className="grid gap-4 xl:grid-cols-2">
-            {feeReference.map((section) => (
-              <div key={section.key} className="rounded-xl border border-border p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <h4 className="font-semibold text-card-foreground">{section.title}</h4>
-                    <p className="text-xs text-muted-foreground">{section.department}</p>
-                  </div>
-                  <Badge variant="outline">{section.items.length} items</Badge>
-                </div>
-                <div className="mt-4 max-h-[360px] overflow-y-auto rounded-lg border border-border">
-                  <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-secondary/80">
-                      <tr className="text-left">
-                        <th className="px-3 py-2 font-medium text-muted-foreground">Description</th>
-                        <th className="px-3 py-2 font-medium text-muted-foreground">Fee</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {section.items.map((item) => (
-                        <tr key={`${section.key}-${item.description}`} className="border-t border-border/60">
-                          <td className="px-3 py-2 text-card-foreground">{item.description}</td>
-                          <td className="px-3 py-2 text-card-foreground">
-                            {typeof item.amount === "number" ? `K ${item.amount}` : item.amount}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ))}
+            {feeReference.map((section) => {
+              const isOpen = Boolean(expandedFeeSections[section.key]) || catalogSearch.trim().length > 0;
+              return (
+                <Collapsible
+                  key={section.key}
+                  open={isOpen}
+                  onOpenChange={(open) => setExpandedFeeSections((prev) => ({ ...prev, [section.key]: open }))}
+                  className="rounded-xl border border-border p-4"
+                >
+                  <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 text-left">
+                    <div>
+                      <h4 className="font-semibold text-card-foreground">{section.title}</h4>
+                      <p className="text-xs text-muted-foreground">{section.department}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{section.items.length} items</Badge>
+                      <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="mt-4 max-h-[360px] overflow-y-auto rounded-lg border border-border">
+                      <table className="w-full text-sm">
+                        <thead className="sticky top-0 bg-secondary/80">
+                          <tr className="text-left">
+                            <th className="px-3 py-2 font-medium text-muted-foreground">Description</th>
+                            <th className="px-3 py-2 font-medium text-muted-foreground">Fee</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {section.items.map((item) => (
+                            <tr key={`${section.key}-${item.description}`} className="border-t border-border/60">
+                              <td className="px-3 py-2 text-card-foreground">{item.description}</td>
+                              <td className="px-3 py-2 text-card-foreground">
+                                {typeof item.amount === "number" ? `K ${item.amount}` : item.amount}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
           </div>
         </div>
       </div>

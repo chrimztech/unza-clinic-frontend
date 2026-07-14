@@ -184,7 +184,7 @@ export default function Settings() {
   return (
     <div>
       <TopBar title="Settings" subtitle="System configuration, notifications, and user profile" />
-      <div className="pl-0 pr-6 pt-6 max-w-3xl space-y-8">
+      <div className="p-6 max-w-3xl mx-auto space-y-8">
         <section className="rounded-xl bg-card p-6 shadow-card border border-border space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold font-display text-card-foreground">My Profile</h3>

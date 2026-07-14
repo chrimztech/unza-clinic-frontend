@@ -122,7 +122,7 @@ const rolePermissionFallback: Record<string, string[]> = {
   Pharmacist: [
     "dashboard.view", "sections.view", "notifications.view", "patients.view",
     "forms.view", "pharmacy.view", "pharmacy.dispense", "suppliers.view", "inventory.view",
-    "billing.view", "billing.create", "billing.payments",
+    "prescriptions.view", "billing.view", "billing.create", "billing.payments",
   ],
   "Lab Technician": [
     "dashboard.view", "sections.view", "notifications.view", "patients.view",
@@ -255,7 +255,7 @@ const flattenNavItems = () => navSections.flatMap((section) => section.items);
 const hiddenRouteAccess = [
   { prefix: "/reception-desk", permissions: ["walkin.view"] },
   { prefix: "/records-desk", permissions: ["records.view"] },
-  { prefix: "/patients/register", permissions: ["patients.view", "walkin.view"] },
+  { prefix: "/patients/register", permissions: ["walkin.view"] },
   { prefix: "/patients/", permissions: ["patients.view"] },
   { prefix: "/billing/invoice/", permissions: ["billing.view"] },
 ];

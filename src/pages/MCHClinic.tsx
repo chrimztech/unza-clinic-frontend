@@ -416,7 +416,7 @@ export default function MCHClinic() {
             <DialogTitle className="font-display">New Antenatal Visit</DialogTitle>
             <DialogDescription>Record antenatal care assessment including vitals, lab results, and supplementation.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAntenatal} className="flex-1 overflow-y-auto space-y-4 pr-2">
+          <form onSubmit={handleAntenatal} className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
                 <Label>Patient *</Label>
@@ -553,7 +553,7 @@ export default function MCHClinic() {
             <DialogTitle className="font-display">Record Immunization Visit</DialogTitle>
             <DialogDescription>Enter child details, vaccines administered, and growth measurements.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleImmunization} className="flex-1 overflow-y-auto space-y-4 pr-2">
+          <form onSubmit={handleImmunization} className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>Child Name *</Label>
@@ -642,7 +642,7 @@ export default function MCHClinic() {
             <DialogTitle className="font-display">Family Planning Visit</DialogTitle>
             <DialogDescription>Record contraceptive method counseling and initiation.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleFP} className="flex-1 overflow-y-auto space-y-4 pr-2">
+          <form onSubmit={handleFP} className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2">
             <div className="space-y-1.5">
               <Label>Patient *</Label>
               <Select value={fpForm.patientId} onValueChange={(v) => setFpForm((f) => ({ ...f, patientId: v }))}>

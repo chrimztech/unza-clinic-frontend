@@ -7,7 +7,7 @@ import StatCard from "@/components/dashboard/StatCard";
 import { Search, Plus, UserPlus, UserMinus, BedDouble, Clock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import AdmitPatientDialog, { AdmissionEntry } from "@/components/dialogs/AdmitPatientDialog";
-import DischargePatientDialog from "@/components/dialogs/DischargePatientDialog";
+import DischargePatientDialog, { DischargeDetails } from "@/components/dialogs/DischargePatientDialog";
 import DepartmentFormsPanel from "@/components/clinical/DepartmentFormsPanel";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -66,10 +66,10 @@ export default function Admissions() {
     setShowDischarge(true);
   };
 
-  const confirmDischarge = async () => {
+  const confirmDischarge = async (details: DischargeDetails) => {
     if (!selectedId) return;
     try {
-      const updated = await api.admissions.discharge(selectedId);
+      const updated = await api.admissions.discharge(selectedId, { ...details });
       setAdmissions((prev) => prev.map((entry) => (entry.id === selectedId ? updated : entry)));
       const latestWards = await api.wards.getAll();
       setWards(latestWards || []);

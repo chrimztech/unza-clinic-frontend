@@ -277,7 +277,7 @@ export default function Triage() {
               Record the patient triage level, full vitals, pain score, consciousness level, and nurse notes before they proceed through the clinic flow.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto flex-1 pr-2">
+          <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto flex-1 min-h-0 pr-2">
             <div className="space-y-1.5">
               <Label>Patient *</Label>
               <Select value={form.patientId} onValueChange={(v) => setForm((f) => ({ ...f, patientId: v }))}>

@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Save, UserPlus, Hash, Search, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Save, UserPlus, Hash, Search, CheckCircle2, AlertCircle, GraduationCap, Briefcase, Users, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { getEncounterStartingActions, getEncounterStartingStage } from "@/lib/patient-flow";
+import { useAuth } from "@/context/AuthContext";
+import { getUserDisplayName } from "@/lib/session-user";
 
 interface FormState {
   clinicNumber: string;
@@ -66,12 +68,41 @@ const initialState: FormState = {
 
 export default function PatientRegistration() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const registeredByName = getUserDisplayName(user, "Reception");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState>(initialState);
   const [assignedClinicNumber, setAssignedClinicNumber] = useState<string>("");
   const [lookupStatus, setLookupStatus] = useState<"idle" | "loading" | "found" | "not_found" | "already_registered">("idle");
+  const [category, setCategory] = useState<"STUDENT" | "STAFF" | "STAFF_DEPENDANT" | "PUBLIC" | null>(null);
+  const [isFirstTimeStudent, setIsFirstTimeStudent] = useState(false);
+  const [isExternalVisitor, setIsExternalVisitor] = useState(false);
 
   const setField = (key: keyof FormState, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const categoryOptions: { key: NonNullable<typeof category>; label: string; description: string; icon: typeof GraduationCap }[] = [
+    { key: "STUDENT", label: "Student", description: "Look up by SIS computer number", icon: GraduationCap },
+    { key: "STAFF", label: "Staff", description: "Look up by HR man number", icon: Briefcase },
+    { key: "STAFF_DEPENDANT", label: "Staff Dependant/Spouse", description: "Link to a staff member's record", icon: Users },
+    { key: "PUBLIC", label: "Public", description: "Enter details manually", icon: User },
+  ];
+
+  const selectCategory = (next: NonNullable<typeof category>) => {
+    setCategory(next);
+    setLookupStatus("idle");
+    if (next === "STUDENT") setField("patientType", isFirstTimeStudent ? "FIRST_TIME_STUDENT" : "STUDENT");
+    else if (next === "STAFF") setField("patientType", "STAFF");
+    else if (next === "STAFF_DEPENDANT") setField("patientType", "STAFF_DEPENDANT");
+    else setField("patientType", isExternalVisitor ? "NON_UNZA" : "GENERAL");
+  };
+
+  useEffect(() => {
+    if (category === "STUDENT") setField("patientType", isFirstTimeStudent ? "FIRST_TIME_STUDENT" : "STUDENT");
+  }, [isFirstTimeStudent]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (category === "PUBLIC") setField("patientType", isExternalVisitor ? "NON_UNZA" : "GENERAL");
+  }, [isExternalVisitor]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const lookupStaff = async () => {
     if (!form.manNumber.trim()) { toast.error("Enter a man number first"); return; }
@@ -191,7 +222,7 @@ export default function PatientRegistration() {
         patientId: createdPatient.patient_id,
         patientName: createdPatient.name,
         patientType: createdPatient.patient_type,
-        createdBy: "Reception",
+        createdBy: registeredByName,
         currentStage: getEncounterStartingStage(false),
         pendingActions: getEncounterStartingActions(false).join(", "),
         notes: "Encounter automatically opened during patient registration.",
@@ -214,16 +245,52 @@ export default function PatientRegistration() {
   return (
     <div>
       <TopBar title="Register New Patient" subtitle="Add a new patient to the clinic system" />
-      <div className="p-6">
+      <div className="p-6 max-w-4xl mx-auto">
         <Button variant="ghost" size="sm" onClick={() => navigate("/patients")} className="mb-4 text-muted-foreground">
           <ArrowLeft className="h-4 w-4 mr-1" /> Back to Patients
         </Button>
 
-        <form onSubmit={handleSubmit} className="max-w-4xl space-y-6">
+        <section className="rounded-xl bg-card p-6 shadow-card border border-border mb-6">
+          <h3 className="font-semibold font-display text-card-foreground mb-1 flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">1</span>
+            Select Patient Type
+          </h3>
+          <p className="text-xs text-muted-foreground mb-4 ml-8">Choose who you're registering — this determines whether we look the record up for you or you enter it manually.</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {categoryOptions.map((option) => {
+              const Icon = option.icon;
+              const isSelected = category === option.key;
+              return (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => selectCategory(option.key)}
+                  className={`flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all ${
+                    isSelected ? "border-primary bg-primary/5 shadow-md" : "border-border hover:border-primary/40 hover:bg-muted/40"
+                  }`}
+                >
+                  <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${isSelected ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>
+                    <Icon className="h-4.5 w-4.5" />
+                  </span>
+                  <span className="font-medium text-card-foreground">{option.label}</span>
+                  <span className="text-xs text-muted-foreground">{option.description}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {category && (
+        <form onSubmit={handleSubmit} className="space-y-6">
           <section className="rounded-xl bg-card p-6 shadow-card border border-border">
-            <h3 className="font-semibold font-display text-card-foreground mb-4 flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-primary" /> Personal Information
-            </h3>
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <h3 className="font-semibold font-display text-card-foreground flex items-center gap-2">
+                <UserPlus className="h-5 w-5 text-primary" /> Personal Information
+              </h3>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setCategory(null)} className="text-xs text-muted-foreground">
+                Change patient type
+              </Button>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor="clinicNumber">Clinic Number</Label>
@@ -243,20 +310,6 @@ export default function PatientRegistration() {
                     {assignedClinicNumber}
                   </Badge>
                 </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="patientType">Patient Type *</Label>
-                <Select value={form.patientType} onValueChange={(value) => setField("patientType", value as FormState["patientType"])}>
-                  <SelectTrigger><SelectValue placeholder="Select patient type" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="GENERAL">General</SelectItem>
-                    <SelectItem value="STUDENT">Student</SelectItem>
-                    <SelectItem value="FIRST_TIME_STUDENT">First Timer Student</SelectItem>
-                    <SelectItem value="STAFF">Staff</SelectItem>
-                    <SelectItem value="STAFF_DEPENDANT">Staff Dependant/Spouse</SelectItem>
-                    <SelectItem value="NON_UNZA">Non UNZA</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="phone">Phone Number *</Label>
@@ -301,9 +354,23 @@ export default function PatientRegistration() {
           </section>
 
           <section className="rounded-xl bg-card p-6 shadow-card border border-border">
-            <h3 className="font-semibold font-display text-card-foreground mb-4">
-              {["STUDENT", "FIRST_TIME_STUDENT"].includes(form.patientType) ? "UNZA Student Details" : ["STAFF", "STAFF_DEPENDANT"].includes(form.patientType) ? "UNZA Staff Details" : "External Identity"}
-            </h3>
+            <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+              <h3 className="font-semibold font-display text-card-foreground">
+                {category === "STUDENT" ? "UNZA Student Details" : category === "STAFF" ? "UNZA Staff Details" : category === "STAFF_DEPENDANT" ? "Staff Dependant/Spouse Details" : "External Identity"}
+              </h3>
+              {category === "STUDENT" && (
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <input type="checkbox" className="h-3.5 w-3.5" checked={isFirstTimeStudent} onChange={(e) => setIsFirstTimeStudent(e.target.checked)} />
+                  First-time student (initial medical exam)
+                </label>
+              )}
+              {category === "PUBLIC" && (
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <input type="checkbox" className="h-3.5 w-3.5" checked={isExternalVisitor} onChange={(e) => setIsExternalVisitor(e.target.checked)} />
+                  External visitor (not affiliated with UNZA)
+                </label>
+              )}
+            </div>
             {["STUDENT", "FIRST_TIME_STUDENT"].includes(form.patientType) ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="space-y-1.5">
@@ -452,6 +519,7 @@ export default function PatientRegistration() {
             </Button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useEffect, useMemo, useState } from "react";
 import api from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 export interface AdmissionEntry {
   id: number;
@@ -19,6 +20,10 @@ export interface AdmissionEntry {
   admittedOn: string;
   diagnosis: string;
   status: "active" | "critical" | "discharged";
+  dischargeType?: string;
+  dischargeSummary?: string;
+  dischargedOn?: string;
+  dischargedBy?: string;
 }
 
 type WardEntry = {
@@ -35,14 +40,8 @@ interface AdmitPatientDialogProps {
   onSubmit?: (entry: AdmissionEntry) => void;
 }
 
-const doctorNames: Record<string, string> = {
-  "STF-001": "Dr. Joseph Tembo",
-  "STF-002": "Dr. Grace Ng'andu",
-  "STF-003": "Dr. Patrick Mwale",
-  "STF-004": "Dr. Mary Lungu",
-};
-
 export default function AdmitPatientDialog({ open, onOpenChange, onSubmit }: AdmitPatientDialogProps) {
+  const { user } = useAuth();
   const [patientId, setPatientId] = useState("");
   const [ward, setWard] = useState("");
   const [bed, setBed] = useState("");
@@ -52,6 +51,7 @@ export default function AdmitPatientDialog({ open, onOpenChange, onSubmit }: Adm
   const [wards, setWards] = useState<WardEntry[]>([]);
   const [admissions, setAdmissions] = useState<AdmissionEntry[]>([]);
   const [registeredPatients, setRegisteredPatients] = useState<any[]>([]);
+  const [doctors, setDoctors] = useState<{ staffId: string; name: string }[]>([]);
   const selectedPatient = useMemo(
     () => registeredPatients.find((entry) => entry.patient_id === patientId) ?? null,
     [patientId, registeredPatients],
@@ -70,16 +70,25 @@ export default function AdmitPatientDialog({ open, onOpenChange, onSubmit }: Adm
     if (!open) return;
     async function loadWardContext() {
       try {
-        const [wardData, admissionData, patientData] = await Promise.all([api.wards.getAll(), api.admissions.getAll(), api.patients.getAll()]);
+        const [wardData, admissionData, patientData, staffData] = await Promise.all([
+          api.wards.getAll(), api.admissions.getAll(), api.patients.getAll(), api.staff.getAll(),
+        ]);
         setWards(wardData || []);
         setAdmissions(admissionData || []);
         setRegisteredPatients(patientData || []);
+        const doctorList = (staffData || [])
+          .filter((entry: any) => entry.role === "Doctor")
+          .map((entry: any) => ({ staffId: entry.staffId || entry.staff_id, name: entry.name }));
+        setDoctors(doctorList);
+        if (user?.role === "Doctor" && user.staffId) {
+          setDoctorId(user.staffId);
+        }
       } catch {
         toast.error("Failed to load ward availability");
       }
     }
     loadWardContext();
-  }, [open]);
+  }, [open, user]);
 
   const selectedWard = useMemo(() => wards.find((entry) => entry.name === ward) ?? null, [ward, wards]);
 
@@ -107,7 +116,7 @@ export default function AdmitPatientDialog({ open, onOpenChange, onSubmit }: Adm
         patientName: selectedPatient.name,
         ward,
         bed: `Bed ${bed}`,
-        doctor: doctorNames[doctorId] || doctorId,
+        doctor: doctors.find((entry) => entry.staffId === doctorId)?.name || doctorId,
         admittedOn: date,
         diagnosis,
       });
@@ -183,8 +192,8 @@ export default function AdmitPatientDialog({ open, onOpenChange, onSubmit }: Adm
               <Select required value={doctorId} onValueChange={setDoctorId}>
                 <SelectTrigger><SelectValue placeholder="Select doctor" /></SelectTrigger>
                 <SelectContent>
-                  {Object.entries(doctorNames).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  {doctors.map((entry) => (
+                    <SelectItem key={entry.staffId} value={entry.staffId}>{entry.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

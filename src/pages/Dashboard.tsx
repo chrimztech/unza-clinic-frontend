@@ -162,7 +162,7 @@ export default function Dashboard() {
         subtitle={`Welcome back, ${user?.name || "Clinic User"}. Here is what is happening today.`}
       />
 
-      <Box sx={{ mt: 2 }}>
+      <Box sx={{ px: 3, pt: 3 }}>
         {/* Stats Grid */}
         <Grid container spacing={2.5} sx={{ mb: 4 }}>
           {statCards.map((stat, index) => (

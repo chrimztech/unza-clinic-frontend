@@ -197,7 +197,7 @@ export default function NewPrescriptionDialog({ open, onOpenChange, onSubmit }: 
         <DialogHeader>
           <DialogTitle className="font-display">New Prescription</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-5 pr-1">
+        <form onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto space-y-5 pr-1">
 
           {/* Patient + Doctor */}
           <div className="grid gap-4 sm:grid-cols-2">

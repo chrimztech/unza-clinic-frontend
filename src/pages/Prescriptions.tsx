@@ -89,7 +89,7 @@ export default function Prescriptions() {
   return (
     <div>
       <TopBar title="Prescriptions" subtitle="Manage and fulfill patient prescriptions" />
-      <div className="pl-0 pr-6 pt-6 space-y-4">
+      <div className="p-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-3 justify-between">
           <div className="relative w-full sm:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

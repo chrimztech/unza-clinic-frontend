@@ -18,12 +18,6 @@ Access:
 - Backend API: http://localhost:8080/api
 - API Docs (Swagger): http://localhost:8080/swagger-ui.html
 
-### Default demo login
-- Email: `admin@unza.zm`
-- Password: `admin123`
-
-**Important:** Change the admin password immediately after first login via Settings -> Profile.
-
 ## Development (Local)
 
 ### Frontend

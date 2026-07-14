@@ -512,7 +512,7 @@ KEEP OUT OF REACH OF CHILDREN
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto space-y-5 pr-1">
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-5 pr-1">
             {/* Patient Info */}
             <div className="rounded-xl border border-border p-4 bg-muted/20 space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Patient Information</p>

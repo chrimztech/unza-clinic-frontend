@@ -95,7 +95,7 @@ export default function Notifications() {
   return (
     <div>
       <TopBar title="Notifications" subtitle={`${unread} unread notifications`} />
-      <div className="pl-0 pr-6 pt-6 space-y-4 max-w-4xl">
+      <div className="p-6 space-y-4">
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-xl bg-card p-4 shadow-card border border-border">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Total</p>

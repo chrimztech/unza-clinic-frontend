@@ -38,12 +38,6 @@ async function request(endpoint: string, options: RequestInit = {}) {
   if (storedUser?.accessToken) {
     authHeaders.Authorization = `${storedUser.tokenType || "Bearer"} ${storedUser.accessToken}`;
   }
-  if (storedUser?.id) {
-    authHeaders["X-Clinic-User-Id"] = String(storedUser.id);
-  }
-  if (storedUser?.role) {
-    authHeaders["X-Clinic-User-Role"] = String(storedUser.role);
-  }
 
   const response = await fetch(`${API_BASE}${endpoint}`, {
     headers: { "Content-Type": "application/json", ...authHeaders, ...options.headers },
@@ -102,6 +96,10 @@ const mapAdmission = (entry: any) => ({
   patient: entry.patient_name,
   patientId: entry.patient_id,
   admittedOn: entry.admitted_on,
+  dischargeType: entry.discharge_type,
+  dischargeSummary: entry.discharge_summary,
+  dischargedOn: entry.discharged_on,
+  dischargedBy: entry.discharged_by,
 });
 
 const mapLabTest = (entry: any) => ({
@@ -394,7 +392,7 @@ export const api = {
    admissions: {
      getAll: async () => (await request("/admissions")).map(mapAdmission),
      create: async (data: Record<string, unknown>) => mapAdmission((await request("/admissions", { method: "POST", body: JSON.stringify(data) })).entry),
-     discharge: async (id: number) => mapAdmission((await request(`/admissions/${id}/discharge`, { method: "PUT" })).entry),
+     discharge: async (id: number, data: Record<string, unknown>) => mapAdmission((await request(`/admissions/${id}/discharge`, { method: "PUT", body: JSON.stringify(data) })).entry),
      transfer: async (id: number, data: Record<string, unknown>) =>
        mapAdmission((await request(`/admissions/${id}/transfer`, { method: "PUT", body: JSON.stringify(data) })).entry),
    },

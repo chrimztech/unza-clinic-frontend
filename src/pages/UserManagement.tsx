@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Shield, Trash2, KeyRound } from "lucide-react";
+import { Search, Plus, Shield, Trash2, KeyRound, ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import TopBar from "@/components/layout/TopBar";
 import { useAuth } from "@/context/AuthContext";
 import { hasPermission } from "@/lib/navigation";
@@ -90,10 +91,10 @@ const permissionLabels: Record<string, string> = {
 
 const rolePermissionPresets: Record<string, string[]> = {
   Admin: Object.keys(permissionLabels),
-  Doctor: ["dashboard.view", "sections.view", "notifications.view", "patients.view", "walkin.view", "triage.view", "emergency.view", "staff.view", "schedules.view", "records.view", "forms.view", "prescriptions.view", "referrals.view", "counseling.view", "laboratory.view", "radiology.view", "bloodbank.view", "wards.view", "admissions.view", "mch.view", "art.view", "dental.view", "eye.view", "sti.view", "physio.view", "reports.view"],
+  Doctor: ["dashboard.view", "sections.view", "notifications.view", "patients.view", "patients.manage", "walkin.view", "triage.view", "emergency.view", "staff.view", "schedules.view", "records.view", "forms.view", "prescriptions.view", "referrals.view", "counseling.view", "laboratory.view", "radiology.view", "bloodbank.view", "wards.view", "admissions.view", "mch.view", "art.view", "dental.view", "eye.view", "sti.view", "physio.view", "reports.view"],
   Nurse: ["dashboard.view", "sections.view", "notifications.view", "patients.view", "walkin.view", "triage.view", "emergency.view", "staff.view", "records.view", "forms.view", "counseling.view", "wards.view", "admissions.view", "mch.view"],
   Receptionist: ["dashboard.view", "sections.view", "notifications.view", "patients.view", "walkin.view", "schedules.view", "forms.view", "billing.view", "billing.create", "billing.payments", "insurance.view"],
-  Pharmacist: ["dashboard.view", "sections.view", "notifications.view", "patients.view", "forms.view", "pharmacy.view", "pharmacy.dispense", "suppliers.view", "inventory.view", "billing.view", "billing.create", "billing.payments"],
+  Pharmacist: ["dashboard.view", "sections.view", "notifications.view", "patients.view", "forms.view", "pharmacy.view", "pharmacy.dispense", "suppliers.view", "inventory.view", "prescriptions.view", "billing.view", "billing.create", "billing.payments"],
   "Lab Technician": ["dashboard.view", "sections.view", "notifications.view", "patients.view", "forms.view", "laboratory.view", "radiology.view", "bloodbank.view", "reports.view"],
   "MCH Nurse": ["dashboard.view", "sections.view", "notifications.view", "patients.view", "walkin.view", "triage.view", "records.view", "forms.view", "mch.view", "referrals.view"],
   Radiographer: ["dashboard.view", "sections.view", "notifications.view", "patients.view", "forms.view", "radiology.view", "reports.view"],
@@ -132,6 +133,7 @@ export default function UserManagement() {
   const [resetTarget, setResetTarget] = useState<UserEntry | null>(null);
   const [resetNewPassword, setResetNewPassword] = useState("");
   const [resetting, setResetting] = useState(false);
+  const [expandedRoles, setExpandedRoles] = useState<Record<string, boolean>>({});
 
   const loadUsers = () => {
     api.users.getAll().then(setUsers).catch(() => toast.error("Failed to load users"));
@@ -270,7 +272,7 @@ export default function UserManagement() {
   return (
     <div>
       <TopBar title="User Management" subtitle="Manage staff accounts, rights, permissions, and activation status." />
-      <div className="pl-0 pr-6 pt-6 space-y-4">
+      <div className="p-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-3 justify-between">
           <div className="relative w-full sm:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -291,16 +293,31 @@ export default function UserManagement() {
         <div className="rounded-xl bg-card p-5 shadow-card border border-border">
           <h3 className="text-sm font-semibold font-display text-card-foreground mb-4">Role Permission Presets</h3>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {roles.map((role) => (
-              <div key={role} className="rounded-lg border border-border p-4">
-                <p className="font-medium text-card-foreground mb-2">{role}</p>
-                <div className="flex flex-wrap gap-2">
-                  {(rolePermissionPresets[role] || []).map((permission) => (
-                    <span key={permission} className="rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground">{permissionLabels[permission]}</span>
-                  ))}
-                </div>
-              </div>
-            ))}
+            {roles.map((role) => {
+              const permissions = rolePermissionPresets[role] || [];
+              const isOpen = Boolean(expandedRoles[role]);
+              return (
+                <Collapsible
+                  key={role}
+                  open={isOpen}
+                  onOpenChange={(open) => setExpandedRoles((prev) => ({ ...prev, [role]: open }))}
+                  className="rounded-lg border border-border p-4"
+                >
+                  <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 text-left">
+                    <span className="font-medium text-card-foreground">{role}</span>
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      {permissions.length} permission{permissions.length === 1 ? "" : "s"}
+                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                    </span>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3 flex flex-wrap gap-2">
+                    {permissions.map((permission) => (
+                      <span key={permission} className="rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground">{permissionLabels[permission]}</span>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
           </div>
         </div>
 

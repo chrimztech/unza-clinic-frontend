@@ -292,7 +292,7 @@ export default function Physiotherapy() {
             <DialogTitle className="font-display">New Physiotherapy Referral</DialogTitle>
             <DialogDescription>Refer a patient for physiotherapy assessment and treatment.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleReferral} className="flex-1 overflow-y-auto space-y-4 pr-2">
+          <form onSubmit={handleReferral} className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2">
             <div className="space-y-1.5">
               <Label>Patient *</Label>
               <Select value={referralForm.patientId} onValueChange={(v) => setReferralForm((f) => ({ ...f, patientId: v }))}>
@@ -347,7 +347,7 @@ export default function Physiotherapy() {
             <DialogTitle className="font-display">Record Physiotherapy Session</DialogTitle>
             <DialogDescription>Document treatment given, pain scores, mobility, and progress notes.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSession} className="flex-1 overflow-y-auto space-y-4 pr-2">
+          <form onSubmit={handleSession} className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>Patient *</Label>

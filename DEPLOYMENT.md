@@ -82,20 +82,17 @@ docker-compose down -v
 
 ### 5. Initial Admin Login
 
-- Email: `admin@unza.zm`
-- Password: `admin123`
+This system no longer auto-creates a demo admin account or demo clinic data — provision your first real Admin user directly against the database before going live.
 
-**Immediately change the admin password after first login via Settings → Profile.**
+### 6. Clear Legacy Demo Data (Existing Deployments Only)
 
-### 6. Clear Demo Data (Optional)
-
-Before going live, clear seeded demo data:
+If this deployment was previously seeded with demo data before the auto-seeder was removed, clear it via:
 
 1. Log in as Admin
 2. Go to Settings → "Deployment Danger Zone"
 3. Type `CLEAR SEEDED DATA` and confirm
 
-This removes demo patients, appointments, invoices, etc., while preserving admin account and clinic settings.
+This removes demo patients, appointments, invoices, etc., while preserving the admin account and clinic settings.
 
 ## Option 2: Manual Deployment (Traditional)
 

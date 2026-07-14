@@ -204,18 +204,20 @@ export default function Patients() {
             >
               Export XLSX
             </Button>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<Plus className="h-4 w-4" />}
-              onClick={registerNew}
-              sx={{
-                backgroundColor: "primary.main",
-                "&:hover": { backgroundColor: "primary.dark" },
-              }}
-            >
-              Register Patient
-            </Button>
+            {hasPermission(user, ["walkin.view"]) && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<Plus className="h-4 w-4" />}
+                onClick={registerNew}
+                sx={{
+                  backgroundColor: "primary.main",
+                  "&:hover": { backgroundColor: "primary.dark" },
+                }}
+              >
+                Register Patient
+              </Button>
+            )}
           </Box>
         </Paper>
 

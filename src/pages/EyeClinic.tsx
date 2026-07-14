@@ -220,7 +220,7 @@ export default function EyeClinic() {
             <DialogTitle className="font-display">New Eye Clinic Visit</DialogTitle>
             <DialogDescription>Record visual acuity, refraction, diagnosis, and treatment.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-4 pr-2">
+          <form onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2">
             <div className="space-y-1.5">
               <Label>Patient *</Label>
               <Select value={form.patientId} onValueChange={(v) => setForm((f) => ({ ...f, patientId: v }))}>

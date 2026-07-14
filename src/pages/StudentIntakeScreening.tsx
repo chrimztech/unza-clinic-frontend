@@ -252,7 +252,7 @@ export default function StudentIntakeScreening() {
             <DialogTitle className="font-display">Student Medical Examination</DialogTitle>
             <DialogDescription>Complete the intake screening form for this student.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-4 pr-1">
+          <form onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>Student Computer Number *</Label>
