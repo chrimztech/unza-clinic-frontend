@@ -6,6 +6,7 @@ import { ArrowLeft, Printer, Download, Phone, Mail, MapPin } from "lucide-react"
 import { StatusBadge } from "@/components/ui/status-badge";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { generateInvoicePDF } from "@/lib/pdf-export";
 
 type InvoiceData = {
   invoiceId: string;
@@ -92,6 +93,33 @@ export default function InvoiceDetail() {
   const tax = invoice.tax ?? 0;
   const grandTotal = invoice.total ?? subtotal + tax;
 
+  const downloadInvoicePDF = async () => {
+    try {
+      await generateInvoicePDF({
+        invoiceId: invoice.invoiceId,
+        patientName: invoice.patient,
+        patientId: invoice.patientId,
+        studentId: patient?.student_id,
+        manNumber: patient?.man_number,
+        phone: patient?.phone,
+        email: patient?.email,
+        address: patient?.address,
+        invoiceDate: invoice.date,
+        paymentMethod: invoice.method,
+        status: invoice.status,
+        cumulativeSummary: cumulative ? `K ${Number(cumulative.totalAmount || 0).toFixed(2)} across ${cumulative.invoiceCount} invoice(s)` : undefined,
+        lineItems,
+        subtotal,
+        tax,
+        total: grandTotal,
+        filename: `invoice-${invoice.invoiceId}`,
+      });
+      toast.success("Invoice PDF downloaded");
+    } catch {
+      toast.error("Failed to generate invoice PDF");
+    }
+  };
+
   return (
     <div>
       <TopBar title="Invoice Details" subtitle={invoice.invoiceId} />
@@ -101,7 +129,7 @@ export default function InvoiceDetail() {
             <ArrowLeft className="h-4 w-4 mr-1" /> Back to Billing
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => toast.info("Use browser print or PDF save from this page")}>
+            <Button variant="outline" size="sm" onClick={downloadInvoicePDF}>
               <Download className="h-4 w-4 mr-1" /> Download PDF
             </Button>
             <Button variant="outline" size="sm" onClick={() => window.print()}>

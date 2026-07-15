@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Download, FileText, Printer, Save, Search, Sparkles } from "lucide-react";
-import { generateMedicalFitnessCertificate } from "@/lib/pdf-export";
+import { generateClinicalFormPDF, generateMedicalFitnessCertificate } from "@/lib/pdf-export";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -730,6 +730,62 @@ export default function ClinicForms() {
     anchor.click();
   };
 
+  const downloadFormAsPDF = async () => {
+    if (!template || !selectedPatient) {
+      toast.error("Select a patient and form template first");
+      return;
+    }
+    try {
+      await generateClinicalFormPDF({
+        title: template.title,
+        department: template.department,
+        patientName: selectedPatient.name || "",
+        patientId: selectedPatient.patient_id || "",
+        createdBy: user?.name || "",
+        createdAt: new Date().toLocaleString(),
+        fields: template.fields.map((field) => ({ label: field.label, value: values[field.key] || "" })),
+        filename: `${templateKey}-${selectedPatient.patient_id}`,
+      });
+      toast.success("PDF downloaded");
+    } catch {
+      toast.error("Failed to generate PDF");
+    }
+  };
+
+  const downloadSavedFormAsPDF = async (entry: any) => {
+    try {
+      const payload = parseClinicalPayload(entry.payloadJson);
+      const entryTemplate = templates[entry.formType as keyof typeof templates];
+      if (entry.formType === "medical_fitness_certificate") {
+        await generateMedicalFitnessCertificate({
+          name: payload.name || entry.patientName || "",
+          school: payload.school || "",
+          compNo: payload.comp_no || "",
+          fitnessStatus: payload.fitness_status || payload.fitness_recommendation || "PENDING",
+          comments: payload.comments || "",
+          examinerName: payload.examiner_name || entry.createdBy || "Medical Examiner",
+          officialDate: payload.official_date || new Date(entry.createdAt).toISOString().slice(0, 10),
+          filename: `fitness-certificate-${entry.patientId}`,
+        });
+      } else {
+        await generateClinicalFormPDF({
+          title: entry.title || entryTemplate?.title || "Clinical Form",
+          department: entry.department || entryTemplate?.department || "",
+          patientName: entry.patientName || "",
+          patientId: entry.patientId || "",
+          formId: entry.formId,
+          createdBy: entry.createdBy,
+          createdAt: entry.createdAt ? new Date(entry.createdAt).toLocaleString() : "",
+          fields: (entryTemplate?.fields || Object.keys(payload).map((key) => ({ key, label: key }))).map((field) => ({ label: field.label, value: payload[field.key] || "" })),
+          filename: `${entry.formType}-${entry.patientId}`,
+        });
+      }
+      toast.success("PDF downloaded");
+    } catch {
+      toast.error("Failed to generate PDF");
+    }
+  };
+
   return (
     <div>
       <TopBar title="Clinical Forms" subtitle="Digital versions of the UNZA clinic forms you shared" />
@@ -860,6 +916,9 @@ export default function ClinicForms() {
                        <Button variant="outline" onClick={generateCertificateFromExam}>
                          <Sparkles className="h-4 w-4 mr-2" /> Generate Fitness Certificate
                        </Button>
+                       <Button variant="outline" onClick={downloadFormAsPDF}>
+                         <Download className="h-4 w-4 mr-2" /> Download Exam PDF
+                       </Button>
                        <Button variant="outline" onClick={downloadCertificatePDF}>
                          <Download className="h-4 w-4 mr-2" /> Download Fitness PDF
                        </Button>
@@ -868,6 +927,11 @@ export default function ClinicForms() {
                    {templateKey === "medical_fitness_certificate" && (
                      <Button variant="outline" onClick={downloadCertificatePDF}>
                        <Download className="h-4 w-4 mr-2" /> Download Certificate PDF
+                     </Button>
+                   )}
+                   {templateKey !== "student_medical_exam" && templateKey !== "medical_fitness_certificate" && (
+                     <Button variant="outline" onClick={downloadFormAsPDF}>
+                       <Download className="h-4 w-4 mr-2" /> Download PDF
                      </Button>
                    )}
                    <Button variant="outline" onClick={() => window.print()}>
@@ -920,10 +984,15 @@ export default function ClinicForms() {
                         </div>
                         <Badge variant="outline">{entry.department}</Badge>
                       </div>
-                      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        <span>{entry.formId}</span>
-                        <span>{entry.createdBy}</span>
-                        <span>{new Date(entry.createdAt).toLocaleString()}</span>
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                          <span>{entry.formId}</span>
+                          <span>{entry.createdBy}</span>
+                          <span>{new Date(entry.createdAt).toLocaleString()}</span>
+                        </div>
+                        <Button type="button" variant="ghost" size="sm" className="h-7 shrink-0 text-xs" onClick={() => downloadSavedFormAsPDF(entry)}>
+                          <Download className="mr-1 h-3.5 w-3.5" /> Download PDF
+                        </Button>
                       </div>
                     </div>
                     {filledFields.length > 0 && (

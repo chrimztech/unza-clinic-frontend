@@ -449,3 +449,218 @@ export async function generateLabReportPDF(report: LabReportConfig) {
   addProfessionalFooter(doc, 0);
   doc.save(`${report.filename || `lab-report-${report.testId}`}.pdf`);
 }
+
+interface ClinicalFormPDFConfig {
+  title: string;
+  department: string;
+  patientName: string;
+  patientId: string;
+  formId?: string;
+  createdBy?: string;
+  createdAt?: string;
+  fields: { label: string; value: string }[];
+  filename?: string;
+}
+
+export async function generateClinicalFormPDF(form: ClinicalFormPDFConfig) {
+  const doc = new jsPDF("p", "mm", "a4");
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const settings = await getClinicSettings();
+  const logoBase64 = await getLogoBase64();
+
+  const startY = addProfessionalHeader(doc, {
+    title: form.title,
+    subtitle: form.department,
+    filename: form.filename || "clinical-form",
+    columns: [],
+    data: [],
+  }, settings, logoBase64);
+
+  const metaRows: Array<[string, string]> = [
+    ["Patient", `${form.patientName} (${form.patientId})`],
+  ];
+  if (form.formId) metaRows.push(["Form ID", form.formId]);
+  if (form.createdBy) metaRows.push(["Recorded By", form.createdBy]);
+  if (form.createdAt) metaRows.push(["Date", form.createdAt]);
+
+  autoTable(doc, {
+    startY: startY + 3,
+    body: metaRows,
+    theme: "plain",
+    styles: { fontSize: 9, cellPadding: 1.5, textColor: 90 },
+    columnStyles: {
+      0: { cellWidth: 32, fontStyle: "bold" },
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  const fieldRows = form.fields
+    .filter((field) => field.value && field.value.trim())
+    .map((field) => [field.label, field.value]);
+
+  autoTable(doc, {
+    startY: (doc as any).lastAutoTable.finalY + 4,
+    head: [["Field", "Value"]],
+    body: fieldRows.length > 0 ? fieldRows : [["", "No data recorded"]],
+    theme: "grid",
+    headStyles: {
+      fillColor: [22, 100, 29],
+      textColor: 255,
+      fontSize: 10,
+      fontStyle: "bold",
+    },
+    styles: { fontSize: 9, cellPadding: 4, textColor: 50 },
+    columnStyles: {
+      0: { cellWidth: 55, fontStyle: "bold", fillColor: [245, 250, 247] },
+      1: { cellWidth: pageWidth - 83 },
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  addProfessionalFooter(doc, 0);
+  doc.save(`${form.filename || "clinical-form"}.pdf`);
+}
+
+interface InvoicePDFConfig {
+  invoiceId: string;
+  patientName: string;
+  patientId: string;
+  studentId?: string;
+  manNumber?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  invoiceDate: string;
+  paymentMethod: string;
+  status: string;
+  cumulativeSummary?: string;
+  lineItems: { description: string; qty: number; unitPrice: number; total: number }[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  filename?: string;
+}
+
+export async function generateInvoicePDF(invoice: InvoicePDFConfig) {
+  const doc = new jsPDF("p", "mm", "a4");
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const settings = await getClinicSettings();
+  const logoBase64 = await getLogoBase64();
+
+  let yPos = 15;
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, "PNG", 14, 10, 22, 22);
+    } catch {}
+  }
+
+  doc.setFontSize(15);
+  doc.setTextColor(22, 100, 29);
+  doc.text(settings.hospital_name, 42, 18);
+
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 100, 100);
+  const contactLine = [settings.address, settings.contact_phone ? `Tel: ${settings.contact_phone}` : ""].filter(Boolean).join(" | ");
+  if (contactLine) doc.text(contactLine, 42, 24);
+
+  doc.setFontSize(20);
+  doc.setTextColor(0, 0, 0);
+  doc.setFont(undefined, "bold");
+  doc.text("INVOICE", pageWidth - 14, 20, { align: "right" });
+  doc.setFontSize(10);
+  doc.setTextColor(22, 100, 29);
+  doc.text(invoice.invoiceId, pageWidth - 14, 26, { align: "right" });
+  doc.setFont(undefined, "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.text(invoice.status.toUpperCase(), pageWidth - 14, 31, { align: "right" });
+
+  doc.setDrawColor(22, 100, 29);
+  doc.setLineWidth(0.5);
+  doc.line(14, 36, pageWidth - 14, 36);
+
+  yPos = 46;
+  doc.setFontSize(8.5);
+  doc.setTextColor(140, 140, 140);
+  doc.setFont(undefined, "bold");
+  doc.text("BILL TO", 14, yPos);
+  doc.text("DETAILS", pageWidth - 14, yPos, { align: "right" });
+  yPos += 6;
+
+  doc.setFont(undefined, "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(30, 30, 30);
+  doc.text(invoice.patientName, 14, yPos);
+  const detailLines = [
+    `Date: ${invoice.invoiceDate}`,
+    `Payment: ${invoice.paymentMethod}`,
+  ];
+  detailLines.forEach((line, index) => doc.text(line, pageWidth - 14, yPos + index * 5, { align: "right" }));
+
+  doc.setFontSize(9);
+  doc.setTextColor(90, 90, 90);
+  let idLine = invoice.patientId;
+  if (invoice.studentId) idLine += ` | ${invoice.studentId}`;
+  if (invoice.manNumber) idLine += ` | ${invoice.manNumber}`;
+  doc.text(idLine, 14, yPos + 5);
+  if (invoice.phone) doc.text(`Tel: ${invoice.phone}`, 14, yPos + 10);
+  if (invoice.email) doc.text(invoice.email, 14, yPos + 15);
+  if (invoice.address) doc.text(invoice.address, 14, yPos + 20);
+  if (invoice.cumulativeSummary) {
+    doc.text(invoice.cumulativeSummary, pageWidth - 14, yPos + 10, { align: "right" });
+  }
+
+  const tableStartY = yPos + 28;
+  autoTable(doc, {
+    startY: tableStartY,
+    head: [["Description", "Qty", "Unit Price", "Total"]],
+    body: invoice.lineItems.map((item) => [
+      item.description,
+      String(item.qty),
+      `K ${item.unitPrice.toFixed(2)}`,
+      `K ${item.total.toFixed(2)}`,
+    ]),
+    headStyles: {
+      fillColor: [22, 100, 29],
+      textColor: 255,
+      fontSize: 10,
+      fontStyle: "bold",
+    },
+    styles: { fontSize: 9.5, cellPadding: 4, textColor: 50 },
+    columnStyles: {
+      1: { halign: "center", cellWidth: 20 },
+      2: { halign: "right", cellWidth: 32 },
+      3: { halign: "right", cellWidth: 32 },
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  const afterTableY = (doc as any).lastAutoTable.finalY + 8;
+  const totalsX = pageWidth - 14;
+  let totalsY = afterTableY;
+  doc.setFontSize(9.5);
+  doc.setTextColor(90, 90, 90);
+  doc.setFont(undefined, "normal");
+  doc.text("Subtotal", totalsX - 45, totalsY, { align: "right" });
+  doc.text(`K ${invoice.subtotal.toFixed(2)}`, totalsX, totalsY, { align: "right" });
+  totalsY += 6;
+  doc.text("Tax", totalsX - 45, totalsY, { align: "right" });
+  doc.text(`K ${invoice.tax.toFixed(2)}`, totalsX, totalsY, { align: "right" });
+  totalsY += 3;
+  doc.setDrawColor(200, 200, 200);
+  doc.line(totalsX - 70, totalsY, totalsX, totalsY);
+  totalsY += 6;
+  doc.setFontSize(12);
+  doc.setFont(undefined, "bold");
+  doc.setTextColor(22, 100, 29);
+  doc.text("Total", totalsX - 45, totalsY, { align: "right" });
+  doc.text(`K ${invoice.total.toFixed(2)}`, totalsX, totalsY, { align: "right" });
+
+  doc.setFont(undefined, "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(140, 140, 140);
+  doc.text("Thank you for visiting the UNZA Clinic. For billing queries, contact the finance desk.", pageWidth / 2, totalsY + 20, { align: "center" });
+
+  addProfessionalFooter(doc, 0);
+  doc.save(`${invoice.filename || `invoice-${invoice.invoiceId}`}.pdf`);
+}

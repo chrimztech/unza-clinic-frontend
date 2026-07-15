@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { FileText, Save, Sparkles } from "lucide-react";
+import { Download, FileText, Printer, Save, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { clinicalFormTemplates, type ClinicalTemplateKey } from "@/lib/clinical-form-templates";
+import { generateClinicalFormPDF, generateMedicalFitnessCertificate } from "@/lib/pdf-export";
 import {
   buildMedicalFitnessCertificateValues,
   buildPatientFormDefaults,
@@ -289,6 +290,78 @@ export default function DepartmentFormsPanel({
     }
   };
 
+  const downloadFormPDF = async (formType: ClinicalTemplateKey, payloadValues: Record<string, string>, formMeta?: { formId?: string; createdBy?: string; createdAt?: string }) => {
+    if (!selectedPatient) {
+      toast.error("Select a patient first");
+      return;
+    }
+    try {
+      if (formType === "medical_fitness_certificate") {
+        await generateMedicalFitnessCertificate({
+          name: payloadValues.name || selectedPatient.name || "",
+          school: payloadValues.school || selectedPatient.school || "",
+          compNo: payloadValues.comp_no || selectedPatient.student_id || selectedPatient.clinic_number || "",
+          fitnessStatus: payloadValues.fitness_status || payloadValues.fitness_recommendation || "PENDING",
+          comments: payloadValues.comments || "",
+          examinerName: payloadValues.examiner_name || user?.name || "Medical Examiner",
+          officialDate: payloadValues.official_date || new Date().toISOString().slice(0, 10),
+          filename: `fitness-certificate-${getPatientIdentifier(selectedPatient)}`,
+        });
+      } else {
+        const formTemplate = clinicalFormTemplates[formType];
+        await generateClinicalFormPDF({
+          title: formTemplate.title,
+          department: formTemplate.department,
+          patientName: selectedPatient.name || "",
+          patientId: getPatientIdentifier(selectedPatient),
+          formId: formMeta?.formId,
+          createdBy: formMeta?.createdBy || user?.name || "",
+          createdAt: formMeta?.createdAt ? new Date(formMeta.createdAt).toLocaleString() : "",
+          fields: formTemplate.fields.map((field) => ({ label: field.label, value: payloadValues[field.key] || "" })),
+          filename: `${formType}-${getPatientIdentifier(selectedPatient)}`,
+        });
+      }
+      toast.success("PDF downloaded");
+    } catch {
+      toast.error("Failed to generate PDF");
+    }
+  };
+
+  const downloadSavedFormPDF = async (entry: any) => {
+    try {
+      const payloadValues = parseClinicalPayload(entry.payloadJson);
+      const formType = entry.formType as ClinicalTemplateKey;
+      if (formType === "medical_fitness_certificate") {
+        await generateMedicalFitnessCertificate({
+          name: payloadValues.name || entry.patientName || "",
+          school: payloadValues.school || "",
+          compNo: payloadValues.comp_no || "",
+          fitnessStatus: payloadValues.fitness_status || payloadValues.fitness_recommendation || "PENDING",
+          comments: payloadValues.comments || "",
+          examinerName: payloadValues.examiner_name || entry.createdBy || "Medical Examiner",
+          officialDate: payloadValues.official_date || new Date(entry.createdAt).toISOString().slice(0, 10),
+          filename: `fitness-certificate-${entry.patientId}`,
+        });
+      } else {
+        const formTemplate = clinicalFormTemplates[formType];
+        await generateClinicalFormPDF({
+          title: entry.title || formTemplate?.title || "Clinical Form",
+          department: entry.department || formTemplate?.department || "",
+          patientName: entry.patientName || "",
+          patientId: entry.patientId || "",
+          formId: entry.formId,
+          createdBy: entry.createdBy,
+          createdAt: entry.createdAt ? new Date(entry.createdAt).toLocaleString() : "",
+          fields: (formTemplate?.fields || Object.keys(payloadValues).map((key) => ({ key, label: key }))).map((field) => ({ label: field.label, value: payloadValues[field.key] || "" })),
+          filename: `${formType}-${entry.patientId}`,
+        });
+      }
+      toast.success("PDF downloaded");
+    } catch {
+      toast.error("Failed to generate PDF");
+    }
+  };
+
   return (
     <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -321,9 +394,14 @@ export default function DepartmentFormsPanel({
               </div>
               <Badge variant="secondary">{entry.department}</Badge>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Saved by {entry.createdBy} on {new Date(entry.createdAt).toLocaleString()}
-            </p>
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Saved by {entry.createdBy} on {new Date(entry.createdAt).toLocaleString()}
+              </p>
+              <Button type="button" variant="ghost" size="sm" className="h-7 shrink-0 text-xs" onClick={() => downloadSavedFormPDF(entry)}>
+                <Download className="mr-1 h-3.5 w-3.5" /> Download
+              </Button>
+            </div>
           </div>
         )) : (
           <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
@@ -443,6 +521,12 @@ export default function DepartmentFormsPanel({
                 <Sparkles className="mr-2 h-4 w-4" /> Generate Certificate
               </Button>
             ) : null}
+            <Button type="button" variant="outline" onClick={() => downloadFormPDF(templateKey, values)}>
+              <Download className="mr-2 h-4 w-4" /> Download PDF
+            </Button>
+            <Button type="button" variant="outline" onClick={() => window.print()}>
+              <Printer className="mr-2 h-4 w-4" /> Print
+            </Button>
             <Button type="button" className="gradient-primary text-primary-foreground" onClick={handleSave} disabled={saving || loading}>
               <Save className="mr-2 h-4 w-4" /> {saving ? "Saving..." : "Save Form"}
             </Button>
