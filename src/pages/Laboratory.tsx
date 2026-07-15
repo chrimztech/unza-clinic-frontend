@@ -2,10 +2,12 @@ import TopBar from "@/components/layout/TopBar";
 import { Button } from "@/components/ui/button";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Plus, Search, FlaskConical, Clock, CheckCircle, AlertCircle, Download, ShieldCheck } from "lucide-react";
+import { Plus, Search, FlaskConical, Clock, CheckCircle, AlertCircle, Download, ShieldCheck, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import StatCard from "@/components/dashboard/StatCard";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import RequestLabTestDialog, { LabTestEntry } from "@/components/dialogs/RequestLabTestDialog";
 import LabResultDialog from "@/components/dialogs/LabResultDialog";
 import DepartmentFormsPanel from "@/components/clinical/DepartmentFormsPanel";
@@ -26,6 +28,8 @@ export default function Laboratory() {
   const [showResult, setShowResult] = useState(false);
   const [tests, setTests] = useState<LabTestEntry[]>([]);
   const [approvingId, setApprovingId] = useState<number | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [catalogueSearch, setCatalogueSearch] = useState("");
 
   const loadTests = () => api.labTests.getAll().then(setTests).catch(() => toast.error("Failed to load lab tests"));
 
@@ -106,7 +110,7 @@ export default function Laboratory() {
           {row.status === "completed" && !row.approvedBy && canEnterResults && (
             <Button
               size="sm"
-              className="bg-green-600 hover:bg-green-700 text-white text-xs"
+              className="gradient-primary text-primary-foreground text-xs"
               disabled={approvingId === row.id}
               onClick={() => approveTest(row)}
             >
@@ -115,9 +119,9 @@ export default function Laboratory() {
             </Button>
           )}
           {row.approvedBy && (
-            <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+            <Badge variant="outline" className="border-success/20 bg-success/10 text-success text-xs font-medium gap-1">
               <ShieldCheck className="h-3.5 w-3.5" /> Approved
-            </span>
+            </Badge>
           )}
           {row.status !== "completed" && !row.approvedBy && "-"}
         </div>
@@ -129,6 +133,13 @@ export default function Laboratory() {
   const completed = tests.filter((t) => t.status === "completed").length;
   const inProgress = tests.filter((t) => t.status === "in-progress").length;
   const groupedLabTests = getGroupedLabTests();
+  const filteredCatalogue = useMemo(() => {
+    const needle = catalogueSearch.trim().toLowerCase();
+    if (!needle) return groupedLabTests;
+    return groupedLabTests
+      .map((section) => ({ ...section, tests: section.tests.filter((item) => item.name.toLowerCase().includes(needle)) }))
+      .filter((section) => section.tests.length > 0);
+  }, [groupedLabTests, catalogueSearch]);
 
   return (
     <div>
@@ -170,29 +181,49 @@ export default function Laboratory() {
         <DataTable columns={columns} data={filtered} />
 
         <div className="rounded-xl bg-card p-5 shadow-card border border-border space-y-4">
-          <div>
-            <h3 className="text-sm font-semibold font-display text-card-foreground">Institutional Lab Test Catalogue</h3>
-            <p className="text-xs text-muted-foreground">Ordered to match the paper laboratory request form sections.</p>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold font-display text-card-foreground">Institutional Lab Test Catalogue</h3>
+              <p className="text-xs text-muted-foreground">Ordered to match the paper laboratory request form sections.</p>
+            </div>
+            <div className="relative w-full lg:w-80">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={catalogueSearch} onChange={(e) => setCatalogueSearch(e.target.value)} placeholder="Search tests..." className="pl-9" />
+            </div>
           </div>
           <div className="grid gap-4 xl:grid-cols-2">
-            {groupedLabTests.map((section) => (
-              <div key={section.key} className="rounded-xl border border-border p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <h4 className="font-semibold text-card-foreground">{section.label}</h4>
-                    <p className="text-xs text-muted-foreground">{section.tests[0]?.category || "Laboratory"}</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">{section.tests.length} test{section.tests.length === 1 ? "" : "s"}</span>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {section.tests.map((item) => (
-                    <span key={item.key} className="rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
-                      {item.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
+            {filteredCatalogue.map((section) => {
+              const isOpen = Boolean(expandedSections[section.key]) || catalogueSearch.trim().length > 0;
+              return (
+                <Collapsible
+                  key={section.key}
+                  open={isOpen}
+                  onOpenChange={(open) => setExpandedSections((prev) => ({ ...prev, [section.key]: open }))}
+                  className="rounded-xl border border-border p-4"
+                >
+                  <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 text-left">
+                    <div>
+                      <h4 className="font-semibold text-card-foreground">{section.label}</h4>
+                      <p className="text-xs text-muted-foreground">{section.tests[0]?.category || "Laboratory"}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{section.tests.length} test{section.tests.length === 1 ? "" : "s"}</span>
+                      <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3 flex flex-wrap gap-2">
+                    {section.tests.map((item) => (
+                      <span key={item.key} className="rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
+                        {item.name}
+                      </span>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
+            {filteredCatalogue.length === 0 && (
+              <p className="text-sm text-muted-foreground xl:col-span-2">No tests match your search.</p>
+            )}
           </div>
         </div>
       </div>

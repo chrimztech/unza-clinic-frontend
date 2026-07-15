@@ -3,7 +3,6 @@ import { Bell, LogOut, Search as SearchIcon, User, Settings as SettingsIcon } fr
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/mui-button";
 import { GlobalSearch, useKeyboardShortcut } from "./GlobalSearch";
-import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -35,7 +34,6 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
   const [profileForm, setProfileForm] = useState({ name: "", email: "", department: "", password: "" });
   const [unreadCount, setUnreadCount] = useState(0);
   const { user, logout, updateUser } = useAuth();
-  const { isInstallable, promptInstall } = usePWAInstall();
   const navigate = useNavigate();
 
   useKeyboardShortcut("k", () => setSearchOpen(true), { ctrl: true });
@@ -153,28 +151,6 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
                  }}
                />
              </Box>
-
-             {/* Install App Button */}
-             {isInstallable && (
-               <Button 
-                 variant="contained" 
-                 size="sm" 
-                 onClick={promptInstall}
-                 sx={{ display: { xs: 'none', md: 'flex' },
-                       background: 'linear-gradient(135deg, #007A3D 0%, #00A956 100%)',
-                       color: 'white',
-                       border: 'none',
-                       boxShadow: '0 4px 12px rgba(0, 122, 61, 0.3)',
-                       '&:hover': {
-                         background: 'linear-gradient(135deg, #024023 0%, #007A3D 100%)',
-                         transform: 'translateY(-2px)',
-                         boxShadow: '0 6px 16px rgba(0, 122, 61, 0.4)',
-                       }
-                     }}
-               >
-                 Install App
-               </Button>
-             )}
 
             {/* Notifications */}
             <IconButton size="small" onClick={() => navigate("/notifications")} sx={{ color: 'text.secondary' }}>

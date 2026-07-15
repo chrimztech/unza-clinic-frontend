@@ -403,11 +403,11 @@ export default function ARTClinic() {
                 <Select value={patientForm.currentRegimen} onValueChange={(v) => setPatientForm((f) => ({ ...f, currentRegimen: v }))}>
                   <SelectTrigger><SelectValue placeholder="Select regimen..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="" disabled>— First Line —</SelectItem>
+                    <SelectItem value="__first_line__" disabled>— First Line —</SelectItem>
                     {ART_REGIMENS_FIRST_LINE.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                    <SelectItem value="" disabled>— Second Line —</SelectItem>
+                    <SelectItem value="__second_line__" disabled>— Second Line —</SelectItem>
                     {ART_REGIMENS_SECOND_LINE.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                    <SelectItem value="" disabled>— Third Line —</SelectItem>
+                    <SelectItem value="__third_line__" disabled>— Third Line —</SelectItem>
                     {ART_REGIMENS_THIRD_LINE.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                   </SelectContent>
                 </Select>
