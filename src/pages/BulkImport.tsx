@@ -11,9 +11,10 @@ import {
 } from "lucide-react";
 import api from "@/lib/api";
 
-type ImportType = "students" | "staff";
+type ImportType = "students" | "staff" | "public";
 
 interface ParsedRow {
+  id: number;
   index: number;
   raw: Record<string, string>;
   errors: string[];
@@ -21,27 +22,83 @@ interface ParsedRow {
   clinicNumber?: string;
 }
 
-const STUDENT_COLUMNS = ["student_id", "name", "school", "year", "phone", "email", "dob", "gender", "blood_group", "allergies", "address"];
-const STAFF_COLUMNS = ["man_number", "name", "department", "role", "phone", "email", "dob", "gender", "blood_group", "allergies", "address"];
+const COMMON_COLUMNS = ["phone", "email", "dob", "gender", "blood_group", "allergies", "address", "emergency_contact", "emergency_phone"];
+const STUDENT_COLUMNS = ["student_id", "name", "school", "year", ...COMMON_COLUMNS];
+const STAFF_COLUMNS = ["man_number", "name", "department", "role", ...COMMON_COLUMNS];
+const PUBLIC_COLUMNS = ["name", ...COMMON_COLUMNS];
+
+const COLUMNS_BY_TYPE: Record<ImportType, string[]> = {
+  students: STUDENT_COLUMNS,
+  staff: STAFF_COLUMNS,
+  public: PUBLIC_COLUMNS,
+};
 
 const SAMPLE_STUDENTS = [
-  ["student_id", "name", "school", "year", "phone", "email", "dob", "gender", "blood_group", "allergies", "address"].join(","),
-  ["23001234", "Jane Banda", "School of Medicine", "1", "0977123456", "jane@student.unza.zm", "2004-03-15", "Female", "O+", "None", "Lusaka"].join(","),
-  ["23001235", "Chanda Mwale", "School of Engineering", "2", "0966234567", "chanda@student.unza.zm", "2003-07-20", "Male", "A+", "Penicillin", "Ndola"].join(","),
+  STUDENT_COLUMNS.join(","),
+  ["23001234", "Jane Banda", "School of Medicine", "1", "0977123456", "jane@student.unza.zm", "2004-03-15", "Female", "O+", "None", "Lusaka", "Mary Banda", "0977998877"].join(","),
+  ["23001235", "Chanda Mwale", "School of Engineering", "2", "0966234567", "chanda@student.unza.zm", "2003-07-20", "Male", "A+", "Penicillin", "Ndola", "Peter Mwale", "0966887766"].join(","),
 ].join("\n");
 
 const SAMPLE_STAFF = [
-  ["man_number", "name", "department", "role", "phone", "email", "dob", "gender", "blood_group", "allergies", "address"].join(","),
-  ["UNZA-001", "Dr. Mwansa Phiri", "Clinical", "Doctor", "0955001122", "mwansa@unza.zm", "1978-05-10", "Male", "B+", "None", "Lusaka"].join(","),
-  ["UNZA-002", "Nurse Chipo Zulu", "Nursing", "Nurse", "0977002233", "chipo@unza.zm", "1985-11-22", "Female", "AB+", "Aspirin", "Lusaka"].join(","),
+  STAFF_COLUMNS.join(","),
+  ["UNZA-001", "Dr. Mwansa Phiri", "Clinical", "Doctor", "0955001122", "mwansa@unza.zm", "1978-05-10", "Male", "B+", "None", "Lusaka", "Grace Phiri", "0955112233"].join(","),
+  ["UNZA-002", "Nurse Chipo Zulu", "Nursing", "Nurse", "0977002233", "chipo@unza.zm", "1985-11-22", "Female", "AB+", "Aspirin", "Lusaka", "James Zulu", "0977223344"].join(","),
 ].join("\n");
 
+const SAMPLE_PUBLIC = [
+  PUBLIC_COLUMNS.join(","),
+  ["John Tembo", "0966112233", "john.tembo@example.com", "1990-02-11", "Male", "O-", "None", "\"Kabulonga, Lusaka\"", "Ruth Tembo", "0966334455"].join(","),
+  ["Agnes Mumba", "0977445566", "", "1975-09-30", "Female", "B-", "Sulfa drugs", "Kitwe", "Moses Mumba", "0977556677"].join(","),
+].join("\n");
+
+const SAMPLES_BY_TYPE: Record<ImportType, string> = {
+  students: SAMPLE_STUDENTS,
+  staff: SAMPLE_STAFF,
+  public: SAMPLE_PUBLIC,
+};
+
+const IMPORT_TYPE_LABELS: Record<ImportType, string> = {
+  students: "Students (SIS)",
+  staff: "Staff (HR)",
+  public: "General Public",
+};
+
+// Splits a single CSV line into fields, respecting double-quoted values that
+// may contain commas (e.g. "Kabulonga, Lusaka") or escaped ("") quotes.
+function parseCsvLine(line: string): string[] {
+  const values: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (inQuotes) {
+      if (char === '"' && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else if (char === '"') {
+        inQuotes = false;
+      } else {
+        current += char;
+      }
+    } else if (char === '"') {
+      inQuotes = true;
+    } else if (char === ",") {
+      values.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  values.push(current.trim());
+  return values;
+}
+
 function parseCsv(text: string): Record<string, string>[] {
-  const lines = text.trim().split("\n").filter(Boolean);
+  const lines = text.trim().split(/\r?\n/).filter(Boolean);
   if (lines.length < 2) return [];
-  const headers = lines[0].split(",").map((h) => h.replace(/^"|"$/g, "").trim().toLowerCase().replace(/\s+/g, "_"));
+  const headers = parseCsvLine(lines[0]).map((h) => h.toLowerCase().replace(/\s+/g, "_"));
   return lines.slice(1).map((line) => {
-    const values = line.split(",").map((v) => v.replace(/^"|"$/g, "").trim());
+    const values = parseCsvLine(line);
     const row: Record<string, string> = {};
     headers.forEach((h, i) => { row[h] = values[i] || ""; });
     return row;
@@ -50,13 +107,13 @@ function parseCsv(text: string): Record<string, string>[] {
 
 function validateRow(row: Record<string, string>, type: ImportType): string[] {
   const errors: string[] = [];
-  if (type === "students") {
-    if (!row.student_id) errors.push("student_id required");
-    if (!row.name) errors.push("name required");
-  } else {
-    if (!row.man_number) errors.push("man_number required");
-    if (!row.name) errors.push("name required");
-  }
+  if (type === "students" && !row.student_id) errors.push("student_id required");
+  if (type === "staff" && !row.man_number) errors.push("man_number required");
+  if (!row.name) errors.push("name required");
+  if (!row.phone) errors.push("phone required");
+  if (!row.address) errors.push("address required");
+  if (!row.emergency_contact) errors.push("emergency_contact required");
+  if (!row.emergency_phone) errors.push("emergency_phone required");
   return errors;
 }
 
@@ -78,7 +135,7 @@ export default function BulkImport() {
       }
       const validated = parsed.map((raw, index) => {
         const errors = validateRow(raw, importType);
-        return { index, raw, errors, status: errors.length > 0 ? "error" : "ready" } as ParsedRow;
+        return { id: index, index, raw, errors, status: errors.length > 0 ? "error" : "ready" } as ParsedRow;
       });
       setRows(validated);
       setProgress(0);
@@ -105,34 +162,39 @@ export default function BulkImport() {
 
     for (const row of ready) {
       try {
+        const age = row.raw.dob ? new Date().getFullYear() - new Date(row.raw.dob).getFullYear() : undefined;
+        const base = {
+          name: row.raw.name,
+          phone: row.raw.phone,
+          email: row.raw.email,
+          address: row.raw.address,
+          bloodGroup: row.raw.blood_group,
+          allergies: row.raw.allergies,
+          gender: row.raw.gender,
+          dob: row.raw.dob,
+          age,
+          emergencyContact: row.raw.emergency_contact,
+          emergencyPhone: row.raw.emergency_phone,
+        };
         const payload = importType === "students"
           ? {
-              name: row.raw.name,
+              ...base,
               patientType: "STUDENT",
               studentId: row.raw.student_id,
-              phone: row.raw.phone,
-              email: row.raw.email,
-              address: row.raw.address,
-              bloodGroup: row.raw.blood_group,
-              allergies: row.raw.allergies,
-              gender: row.raw.gender,
-              dob: row.raw.dob,
               school: row.raw.school,
-              year: row.raw.year,
+              year: row.raw.year ? Number(row.raw.year) : null,
             }
-          : {
-              name: row.raw.name,
+          : importType === "staff"
+          ? {
+              ...base,
               patientType: "STAFF",
               manNumber: row.raw.man_number,
-              phone: row.raw.phone,
-              email: row.raw.email,
-              address: row.raw.address,
-              bloodGroup: row.raw.blood_group,
-              allergies: row.raw.allergies,
-              gender: row.raw.gender,
-              dob: row.raw.dob,
               department: row.raw.department,
               role: row.raw.role,
+            }
+          : {
+              ...base,
+              patientType: "GENERAL",
             };
 
         const result = await api.patients.create(payload);
@@ -153,7 +215,7 @@ export default function BulkImport() {
   };
 
   const downloadSample = () => {
-    const csv = importType === "students" ? SAMPLE_STUDENTS : SAMPLE_STAFF;
+    const csv = SAMPLES_BY_TYPE[importType];
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -199,7 +261,7 @@ export default function BulkImport() {
 
   return (
     <div>
-      <TopBar title="Bulk Import" subtitle="Import patients, students, or staff from SIS / HR CSV exports" />
+      <TopBar title="Bulk Import" subtitle="Import existing students, staff, or general public patient records from CSV" />
       <div className="p-6 space-y-6">
 
         {/* Controls */}
@@ -207,10 +269,11 @@ export default function BulkImport() {
           <div className="flex items-center gap-2">
             <Label>Import Type:</Label>
             <Select value={importType} onValueChange={(v) => { setImportType(v as ImportType); setRows([]); setProgress(0); }}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="students">Students (SIS)</SelectItem>
-                <SelectItem value="staff">Staff (HR)</SelectItem>
+                {(Object.keys(IMPORT_TYPE_LABELS) as ImportType[]).map((type) => (
+                  <SelectItem key={type} value={type}>{IMPORT_TYPE_LABELS[type]}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -232,7 +295,7 @@ export default function BulkImport() {
           <Upload className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
           <p className="text-sm font-medium text-muted-foreground">Drag & drop a CSV file here, or click to browse</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Expected columns: {(importType === "students" ? STUDENT_COLUMNS : STAFF_COLUMNS).join(", ")}
+            Expected columns: {COLUMNS_BY_TYPE[importType].join(", ")}
           </p>
           <input
             ref={fileRef}

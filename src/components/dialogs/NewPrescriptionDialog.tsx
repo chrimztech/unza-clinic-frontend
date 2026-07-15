@@ -4,7 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Plus, Trash2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { AlertTriangle, Check, ChevronsUpDown, Plus, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useEffect, useMemo, useState } from "react";
 import { usePatientJourney } from "@/context/PatientJourneyContext";
@@ -45,27 +48,6 @@ interface NewPrescriptionDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit?: (entry: PrescriptionEntry) => void;
 }
-
-const DRUG_OPTIONS = [
-  { value: "Amoxicillin 500mg", class: "Antibiotic" },
-  { value: "Paracetamol 500mg", class: "Analgesic / Anti-inflammatory" },
-  { value: "Metformin 850mg", class: "Antidiabetic" },
-  { value: "Ibuprofen 400mg", class: "Analgesic / Anti-inflammatory" },
-  { value: "Omeprazole 20mg", class: "Gastrointestinal" },
-  { value: "Ciprofloxacin 500mg", class: "Antibiotic" },
-  { value: "Amlodipine 5mg", class: "Antihypertensive" },
-  { value: "Diclofenac 50mg", class: "Analgesic / Anti-inflammatory" },
-  { value: "Metronidazole 400mg", class: "Antibiotic" },
-  { value: "Cotrimoxazole 480mg", class: "Antibiotic" },
-  { value: "Atenolol 50mg", class: "Antihypertensive" },
-  { value: "Folic Acid 5mg", class: "Supplement" },
-  { value: "Ferrous Sulphate 200mg", class: "Supplement" },
-  { value: "Zinc Sulphate 20mg", class: "Supplement" },
-  { value: "Vitamin C 500mg", class: "Supplement" },
-  { value: "ORS Sachets", class: "Rehydration" },
-  { value: "Albendazole 400mg", class: "Anthelmintic" },
-  { value: "Salbutamol Inhaler 100mcg", class: "Bronchodilator" },
-];
 
 const ALLERGY_MAP: Record<string, string[]> = {
   amoxicillin: ["penicillin", "amoxicillin", "ampicillin", "beta-lactam"],
@@ -109,6 +91,8 @@ export default function NewPrescriptionDialog({ open, onOpenChange, onSubmit }: 
   const [program, setProgram] = useState("");
   const [drugItems, setDrugItems] = useState<DrugItem[]>([emptyItem()]);
   const [registeredPatients, setRegisteredPatients] = useState<any[]>([]);
+  const [drugCatalogue, setDrugCatalogue] = useState<any[]>([]);
+  const [openDrugPicker, setOpenDrugPicker] = useState<number | null>(null);
 
   const selectedPatient = useMemo(
     () => registeredPatients.find((p) => p.patient_id === patientId) ?? null,
@@ -125,6 +109,9 @@ export default function NewPrescriptionDialog({ open, onOpenChange, onSubmit }: 
     api.patients.getAll()
       .then(setRegisteredPatients)
       .catch(() => toast.error("Failed to load patients"));
+    api.drugs.getAll()
+      .then(setDrugCatalogue)
+      .catch(() => toast.error("Failed to load drug inventory"));
   }, [open]);
 
   const reset = () => {
@@ -138,9 +125,9 @@ export default function NewPrescriptionDialog({ open, onOpenChange, onSubmit }: 
   };
 
   const setDrug = (idx: number, drugName: string) => {
-    const option = DRUG_OPTIONS.find((o) => o.value === drugName);
+    const option = drugCatalogue.find((drug) => drug.name === drugName);
     setDrugItems((prev) => prev.map((item, i) =>
-      i === idx ? { ...item, drugName, medicationClass: option?.class || item.medicationClass } : item,
+      i === idx ? { ...item, drugName, medicationClass: option?.category || item.medicationClass } : item,
     ));
   };
 
@@ -261,15 +248,50 @@ export default function NewPrescriptionDialog({ open, onOpenChange, onSubmit }: 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label className="text-xs">Drug *</Label>
-                    <Select value={item.drugName} onValueChange={(v) => setDrug(idx, v)}>
-                      <SelectTrigger><SelectValue placeholder="Select or type drug name" /></SelectTrigger>
-                      <SelectContent>
-                        {DRUG_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>{opt.value}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {/* Free-text override */}
+                    <Popover open={openDrugPicker === idx} onOpenChange={(isOpen) => setOpenDrugPicker(isOpen ? idx : null)}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between font-normal"
+                        >
+                          <span className={cn("truncate", !item.drugName && "text-muted-foreground")}>
+                            {item.drugName || "Search drug inventory..."}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search by drug name..." />
+                          <CommandList>
+                            <CommandEmpty>No drug found in inventory.</CommandEmpty>
+                            <CommandGroup>
+                              {drugCatalogue.map((drug) => (
+                                <CommandItem
+                                  key={drug.drugId || drug.id}
+                                  value={drug.name}
+                                  onSelect={(value) => {
+                                    setDrug(idx, value);
+                                    setOpenDrugPicker(null);
+                                  }}
+                                >
+                                  <Check className={cn("mr-2 h-4 w-4", item.drugName === drug.name ? "opacity-100" : "opacity-0")} />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="truncate">{drug.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {drug.category || "General"} • {drug.stock > 0 ? `${drug.stock} in stock` : "Out of stock"}
+                                    </p>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    {/* Free-text override for drugs not yet in the formulary */}
                     <Input
                       placeholder="Or type drug name manually..."
                       value={item.drugName}

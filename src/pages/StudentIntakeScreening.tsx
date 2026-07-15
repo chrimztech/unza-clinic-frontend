@@ -11,15 +11,25 @@ import { DataTable, Column } from "@/components/ui/data-table";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { getUserDisplayName } from "@/lib/session-user";
-import { Users, Plus, CheckCircle2, AlertTriangle, Search, Download, ClipboardList } from "lucide-react";
+import { buildMedicalFitnessCertificateValues } from "@/lib/medical-exam";
+import { Users, Plus, CheckCircle2, AlertTriangle, AlertCircle, Search, Download, ClipboardList } from "lucide-react";
 import api from "@/lib/api";
+import { sisApi } from "@/lib/externalSystems";
+import { generateMedicalFitnessCertificate } from "@/lib/pdf-export";
 
 interface ScreeningRecord {
+  id: string;
   studentId: string;
+  clinicNumber: string;
   name: string;
   school: string;
   sex: string;
   age: string;
+  phone: string;
+  email: string;
+  address: string;
+  emergencyContact: string;
+  emergencyPhone: string;
   height: string;
   weight: string;
   bmi: string;
@@ -42,11 +52,22 @@ const SCHOOLS = [
   "School of Agricultural Sciences", "School of Business Sciences", "School of Mines",
 ];
 
-const emptyForm = (): Omit<ScreeningRecord, "screenedBy" | "timestamp"> => ({
-  studentId: "", name: "", school: "", sex: "", age: "", height: "", weight: "",
+const emptyForm = (): Omit<ScreeningRecord, "id" | "screenedBy" | "timestamp" | "clinicNumber"> => ({
+  studentId: "", name: "", school: "", sex: "", age: "",
+  phone: "", email: "", address: "", emergencyContact: "", emergencyPhone: "",
+  height: "", weight: "",
   bmi: "", bp: "", temp: "", pulse: "", vision: "", urine: "", diagnosis: "",
   fitnessStatus: "", notes: "",
 });
+
+function computeAge(dob?: string): string {
+  if (!dob) return "";
+  const birthDate = new Date(dob);
+  if (Number.isNaN(birthDate.getTime())) return "";
+  const diff = Date.now() - birthDate.getTime();
+  const age = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+  return age > 0 ? String(age) : "";
+}
 
 const fitnessBadge: Record<string, string> = {
   Fit: "bg-green-100 text-green-800",
@@ -63,9 +84,53 @@ export default function StudentIntakeScreening() {
   const [search, setSearch] = useState("");
   const [cohortYear, setCohortYear] = useState(new Date().getFullYear().toString());
   const [saving, setSaving] = useState(false);
+  const [lookupStatus, setLookupStatus] = useState<"idle" | "loading" | "found" | "not_found">("idle");
+  const [existingClinicNumber, setExistingClinicNumber] = useState("");
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const lookupStudent = async () => {
+    if (!form.studentId.trim()) { toast.error("Enter the student computer number first"); return; }
+    setLookupStatus("loading");
+    setExistingClinicNumber("");
+    try {
+      // Already registered as a clinic patient? Reuse their existing record/clinic number.
+      const existing = await api.sis.lookupStudent(form.studentId.trim());
+      if (existing?.already_registered) {
+        setExistingClinicNumber(existing.clinic_number || "");
+        setForm((f) => ({
+          ...f,
+          name: existing.name || f.name,
+          school: existing.school || f.school,
+          phone: existing.phone || f.phone,
+          email: existing.email || f.email,
+        }));
+        setLookupStatus("found");
+        toast.info(`Already a registered patient — Clinic No: ${existing.clinic_number}`, {
+          description: "Existing details pre-filled. This exam will be added to their record.",
+        });
+        return;
+      }
+
+      // First-time student — pull their record from the university's Student Information System.
+      const student = await sisApi.searchByStudentNumber(form.studentId.trim());
+      setForm((f) => ({
+        ...f,
+        name: student.full_name || `${student.first_name || ""} ${student.last_name || ""}`.trim() || f.name,
+        sex: student.gender || f.sex,
+        age: computeAge(student.date_of_birth) || f.age,
+        phone: student.phone || f.phone,
+        email: student.email || f.email,
+        address: student.address || f.address,
+      }));
+      setLookupStatus("found");
+      toast.success("Found in SIS — details pre-filled", { description: "Add emergency contact details, then continue with vitals." });
+    } catch {
+      setLookupStatus("not_found");
+      toast.info("Student number not found in SIS — enter details manually");
+    }
+  };
 
   const calcBmi = () => {
     const h = parseFloat(form.height);
@@ -82,53 +147,107 @@ export default function StudentIntakeScreening() {
       toast.error("Student ID, name, and fitness status are required");
       return;
     }
+    if (!existingClinicNumber && (!form.phone || !form.address || !form.emergencyContact || !form.emergencyPhone)) {
+      toast.error("Phone, address, and emergency contact are required to register a first-time patient");
+      return;
+    }
     setSaving(true);
     try {
-      const record: ScreeningRecord = {
-        ...form,
-        screenedBy: clinician,
-        timestamp: new Date().toISOString(),
+      let patientId = "";
+      let clinicNumber = existingClinicNumber;
+
+      if (existingClinicNumber) {
+        patientId = existingClinicNumber;
+      } else {
+        const created = await api.patients.create({
+          patientType: "FIRST_TIME_STUDENT",
+          name: form.name,
+          gender: form.sex,
+          age: form.age ? Number(form.age) : undefined,
+          phone: form.phone,
+          email: form.email,
+          address: form.address,
+          studentId: form.studentId,
+          school: form.school,
+          emergencyContact: form.emergencyContact,
+          emergencyPhone: form.emergencyPhone,
+        });
+        patientId = created.patient_id;
+        clinicNumber = created.clinic_number || created.patient_id;
+      }
+
+      const examPayload = {
+        surname: form.name.split(" ").slice(-1)[0] || form.name,
+        forenames: form.name.split(" ").slice(0, -1).join(" ") || form.name,
+        computer_number: form.studentId,
+        school: form.school,
+        sex: form.sex,
+        age: form.age,
+        mobile_number: form.phone,
+        height: form.height,
+        weight: form.weight,
+        bmi: form.bmi,
+        bp: form.bp,
+        temp: form.temp,
+        pulse: form.pulse,
+        urine: form.urine,
+        vision: form.vision,
+        diagnosis: form.diagnosis,
+        fitness_recommendation: form.fitnessStatus,
+        general_comments: form.notes,
       };
 
-      await api.clinicalForms.create({
-        template: "student_medical_exam",
-        patientId: form.studentId,
-        formData: JSON.stringify({
-          surname: form.name.split(" ").slice(-1)[0] || form.name,
-          forenames: form.name.split(" ").slice(0, -1).join(" ") || form.name,
-          computer_number: form.studentId,
-          school: form.school,
-          sex: form.sex,
-          age: form.age,
-          height: form.height,
-          weight: form.weight,
-          bmi: form.bmi,
-          bp: form.bp,
-          temp: form.temp,
-          pulse: form.pulse,
-          vision: form.vision,
-          urine: form.urine,
-          diagnosis: form.diagnosis,
-          fitness_recommendation: form.fitnessStatus,
-          general_comments: form.notes,
-        }),
-        completedBy: clinician,
+      const savedExam = await api.clinicalForms.create({
+        formType: "student_medical_exam",
+        title: "Student Medical Examination",
+        patientId,
+        patientName: form.name,
+        department: "Clinical",
+        status: "completed",
+        createdBy: clinician,
+        payloadJson: JSON.stringify(examPayload),
       });
 
-      setRecords((prev) => [record, ...prev]);
-      setForm(emptyForm());
-      setShowDialog(false);
-      toast.success(`${form.name} screened — ${form.fitnessStatus}`);
-    } catch {
+      await api.clinicalForms.generateMedicalFitnessCertificate({
+        patientId,
+        encounterId: "",
+        sourceExamFormId: savedExam.formId || savedExam.id,
+        createdBy: clinician,
+      });
+
+      const certificateValues = buildMedicalFitnessCertificateValues({
+        examValues: examPayload,
+        examinerName: clinician,
+      });
+      await generateMedicalFitnessCertificate({
+        name: form.name,
+        school: form.school,
+        compNo: clinicNumber || form.studentId,
+        fitnessStatus: certificateValues.fitness_status,
+        comments: certificateValues.comments,
+        examinerName: clinician,
+        officialDate: certificateValues.official_date,
+        filename: `fitness-certificate-${clinicNumber || form.studentId}`,
+      });
+
       const record: ScreeningRecord = {
         ...form,
+        id: clinicNumber || savedExam.formId || savedExam.id || form.studentId,
+        clinicNumber: clinicNumber || "",
         screenedBy: clinician,
         timestamp: new Date().toISOString(),
       };
       setRecords((prev) => [record, ...prev]);
       setForm(emptyForm());
+      setLookupStatus("idle");
+      setExistingClinicNumber("");
       setShowDialog(false);
-      toast.success(`${form.name} screened — ${form.fitnessStatus}`, { description: "Saved locally (server offline)" });
+      toast.success(`${form.name} screened — ${form.fitnessStatus}`, {
+        description: clinicNumber ? `Clinic Number: ${clinicNumber} — certificate downloaded` : "Certificate downloaded",
+        duration: 6000,
+      });
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to save screening. Check required fields and try again.");
     } finally {
       setSaving(false);
     }
@@ -149,9 +268,9 @@ export default function StudentIntakeScreening() {
   }), [records]);
 
   const exportCsv = () => {
-    const headers = ["Student ID", "Name", "School", "Sex", "Age", "Height", "Weight", "BMI", "BP", "Temp", "Pulse", "Vision", "Diagnosis", "Fitness", "Notes", "Screened By", "Date"];
+    const headers = ["Student ID", "Clinic Number", "Name", "School", "Sex", "Age", "Height", "Weight", "BMI", "BP", "Temp", "Pulse", "Vision", "Diagnosis", "Fitness", "Notes", "Screened By", "Date"];
     const rows = records.map((r) => [
-      r.studentId, r.name, r.school, r.sex, r.age, r.height, r.weight, r.bmi,
+      r.studentId, r.clinicNumber, r.name, r.school, r.sex, r.age, r.height, r.weight, r.bmi,
       r.bp, r.temp, r.pulse, r.vision, r.diagnosis, r.fitnessStatus, r.notes,
       r.screenedBy, new Date(r.timestamp).toLocaleDateString(),
     ]);
@@ -167,6 +286,7 @@ export default function StudentIntakeScreening() {
 
   const columns: Column<ScreeningRecord>[] = [
     { header: "Student ID", accessor: "studentId", width: 120 },
+    { header: "Clinic Number", accessor: (r) => r.clinicNumber || "—", width: 130 },
     { header: "Name", accessor: "name", width: 180 },
     { header: "School", accessor: "school", width: 200 },
     { header: "BMI", accessor: (r) => r.bmi || "—", width: 70 },
@@ -193,7 +313,7 @@ export default function StudentIntakeScreening() {
             <Label className="text-sm">Cohort Year:</Label>
             <Input value={cohortYear} onChange={(e) => setCohortYear(e.target.value)} className="w-24" />
           </div>
-          <Button className="gradient-primary text-primary-foreground" onClick={() => { setForm(emptyForm()); setShowDialog(true); }}>
+          <Button className="gradient-primary text-primary-foreground" onClick={() => { setForm(emptyForm()); setLookupStatus("idle"); setExistingClinicNumber(""); setShowDialog(true); }}>
             <Plus className="h-4 w-4 mr-1" /> Screen Student
           </Button>
           {records.length > 0 && (
@@ -256,7 +376,24 @@ export default function StudentIntakeScreening() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>Student Computer Number *</Label>
-                <Input required placeholder="e.g. 23008765" value={form.studentId} onChange={set("studentId")} />
+                <div className="flex gap-2">
+                  <Input
+                    required
+                    placeholder="e.g. 23008765"
+                    value={form.studentId}
+                    onChange={(e) => { set("studentId")(e); setLookupStatus("idle"); setExistingClinicNumber(""); }}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={lookupStudent} disabled={lookupStatus === "loading"} title="Pull details from SIS">
+                    {lookupStatus === "found" ? <CheckCircle2 className="h-4 w-4 text-green-600" /> :
+                     lookupStatus === "not_found" ? <AlertCircle className="h-4 w-4 text-amber-500" /> :
+                     <Search className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {existingClinicNumber
+                    ? `Already registered — Clinic No: ${existingClinicNumber}`
+                    : "Enter the computer number then click search to auto-fill from SIS."}
+                </p>
               </div>
               <div className="space-y-1.5">
                 <Label>Full Name *</Label>
@@ -285,6 +422,30 @@ export default function StudentIntakeScreening() {
                 <Label>Age</Label>
                 <Input placeholder="e.g. 19" value={form.age} onChange={set("age")} />
               </div>
+              {!existingClinicNumber && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label>Phone *</Label>
+                    <Input required placeholder="e.g. 0971234567" value={form.phone} onChange={set("phone")} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Email</Label>
+                    <Input type="email" placeholder="student@unza.ac.zm" value={form.email} onChange={set("email")} />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label>Residential Address *</Label>
+                    <Input required placeholder="e.g. Hostel / Township" value={form.address} onChange={set("address")} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Emergency Contact Name *</Label>
+                    <Input required placeholder="Next of kin" value={form.emergencyContact} onChange={set("emergencyContact")} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Emergency Contact Phone *</Label>
+                    <Input required placeholder="e.g. 0971234567" value={form.emergencyPhone} onChange={set("emergencyPhone")} />
+                  </div>
+                </>
+              )}
               <div className="space-y-1.5">
                 <Label>Blood Pressure</Label>
                 <Input placeholder="e.g. 120/80" value={form.bp} onChange={set("bp")} />
