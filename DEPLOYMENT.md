@@ -41,10 +41,15 @@ cp .env.backend.example .env.backend
 # Edit .env.backend with secure values:
 # - SPRING_DATASOURCE_PASSWORD=<your-secure-db-password>
 # - UNZA_JWT_SECRET=<256-bit-random-secret>
+# - HR_SERVICE_USERNAME / HR_SERVICE_PASSWORD (production HR service account — see below)
 
 # Generate a strong JWT secret (minimum 256-bit):
 # openssl rand -base64 32
 ```
+
+`docker-compose.yml` loads `.env.backend` automatically via `env_file`, so anything set there (JWT secret, DB password, HR/Counseling credentials) reaches the backend container — this file must exist before `docker-compose up` or the backend service will fail to start.
+
+**HR system whitelisting:** `devhr.unza.zm` only accepts requests from IPs it has whitelisted. Before go-live, get this production server's outbound IP to whoever administers the HR system and have it whitelisted (replacing the dev-machine IP used during testing) — otherwise staff/dependents lookups will silently fail (the integration degrades gracefully to "not found" rather than erroring, so this is easy to miss without testing it directly after deploy).
 
 ### 2. Configure PostgreSQL Password
 

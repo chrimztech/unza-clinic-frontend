@@ -26,6 +26,10 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: unza-clinic-backend
+    # Secrets & integration credentials (JWT secret, HR system, counseling system, mail, etc.)
+    # See .env.backend.example — copy it to .env.backend and fill in real values before deploying.
+    env_file:
+      - .env.backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/unza_hospital
       SPRING_DATASOURCE_USERNAME: postgres

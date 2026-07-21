@@ -31,6 +31,8 @@ interface FormState {
   school: string;
   year: string;
   hostel: string;
+  department: string;
+  role: string;
   emergencyContact: string;
   emergencyRelation: string;
   emergencyPhone: string;
@@ -57,6 +59,8 @@ const initialState: FormState = {
   school: "",
   year: "",
   hostel: "",
+  department: "",
+  role: "",
   emergencyContact: "",
   emergencyRelation: "",
   emergencyPhone: "",
@@ -77,6 +81,9 @@ export default function PatientRegistration() {
   const [category, setCategory] = useState<"STUDENT" | "STAFF" | "STAFF_DEPENDANT" | "PUBLIC" | null>(null);
   const [isFirstTimeStudent, setIsFirstTimeStudent] = useState(false);
   const [isExternalVisitor, setIsExternalVisitor] = useState(false);
+  const [linkedStaffName, setLinkedStaffName] = useState("");
+  const [staffDependents, setStaffDependents] = useState<{ full_name: string; relationship: string; date_of_birth: string }[]>([]);
+  const [selectedDependentIndex, setSelectedDependentIndex] = useState("");
 
   const setField = (key: keyof FormState, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -90,6 +97,10 @@ export default function PatientRegistration() {
   const selectCategory = (next: NonNullable<typeof category>) => {
     setCategory(next);
     setLookupStatus("idle");
+    setLinkedStaffName("");
+    setStaffDependents([]);
+    setSelectedDependentIndex("");
+    setForm((prev) => ({ ...prev, department: "", role: "" }));
     if (next === "STUDENT") setField("patientType", isFirstTimeStudent ? "FIRST_TIME_STUDENT" : "STUDENT");
     else if (next === "STAFF") setField("patientType", "STAFF");
     else if (next === "STAFF_DEPENDANT") setField("patientType", "STAFF_DEPENDANT");
@@ -107,30 +118,78 @@ export default function PatientRegistration() {
   const lookupStaff = async () => {
     if (!form.manNumber.trim()) { toast.error("Enter a man number first"); return; }
     setLookupStatus("loading");
+    setLinkedStaffName("");
+    setStaffDependents([]);
+    setSelectedDependentIndex("");
     try {
       const result = await api.staff.lookupByManNumber(form.manNumber.trim());
-      if (result.found) {
-        if (result.already_registered) {
-          setLookupStatus("already_registered");
-          toast.warning(`${result.name} is already registered — Clinic No: ${result.clinic_number}`);
-        } else {
-          setLookupStatus("found");
-          setForm((prev) => ({
-            ...prev,
-            firstName: (result.name as string).split(" ")[0] || prev.firstName,
-            lastName: (result.name as string).split(" ").slice(1).join(" ") || prev.lastName,
-            phone: result.phone || prev.phone,
-            email: result.email || prev.email,
-          }));
-          toast.success(`Found in HR system: ${result.name} — ${result.department}`);
-        }
-      } else {
+      if (!result.found) {
         setLookupStatus("not_found");
         toast.info("Man number not found in HR system — enter details manually");
+        return;
+      }
+
+      if (result.employment_status && result.employment_status !== "ACTIVE") {
+        toast.warning(`Note: HR lists this staff member's employment status as ${result.employment_status}`);
+      }
+
+      if (form.patientType === "STAFF_DEPENDANT") {
+        setLinkedStaffName(result.name || "");
+        const dependents = (result.dependents || []) as { full_name: string; relationship: string; date_of_birth: string }[];
+        setStaffDependents(dependents);
+        setLookupStatus("found");
+        setForm((prev) => ({ ...prev, department: result.department || prev.department }));
+        if (dependents.length > 0) {
+          toast.success(`Found ${result.name} — select a dependant/spouse below`);
+        } else {
+          toast.info(`${result.name} has no dependants on file in the HR system`);
+        }
+        return;
+      }
+
+      if (result.already_registered) {
+        setLookupStatus("already_registered");
+        toast.warning(`${result.name} is already registered — Clinic No: ${result.clinic_number}`);
+      } else {
+        setLookupStatus("found");
+        setForm((prev) => ({
+          ...prev,
+          firstName: (result.name as string).split(" ")[0] || prev.firstName,
+          lastName: (result.name as string).split(" ").slice(1).join(" ") || prev.lastName,
+          phone: result.phone || prev.phone,
+          email: result.email || prev.email,
+          gender: result.gender || prev.gender,
+          dob: result.date_of_birth || prev.dob,
+          department: result.department || prev.department,
+          role: result.role || prev.role,
+        }));
+        toast.success(`Found in HR system: ${result.name} — ${result.department}`);
       }
     } catch {
       setLookupStatus("not_found");
     }
+  };
+
+  const relationshipToEmergencyRelation = (hrRelationship: string) => {
+    const normalized = hrRelationship.trim().toLowerCase();
+    if (normalized === "spouse") return "Spouse";
+    if (normalized === "child") return "Parent";
+    return "Other";
+  };
+
+  const selectDependent = (indexStr: string) => {
+    setSelectedDependentIndex(indexStr);
+    const dependent = staffDependents[Number(indexStr)];
+    if (!dependent) return;
+    const nameParts = dependent.full_name.trim().split(/\s+/);
+    setForm((prev) => ({
+      ...prev,
+      firstName: nameParts[0] || prev.firstName,
+      lastName: nameParts.slice(1).join(" ") || prev.lastName,
+      dob: dependent.date_of_birth || prev.dob,
+      emergencyContact: linkedStaffName || prev.emergencyContact,
+      emergencyRelation: relationshipToEmergencyRelation(dependent.relationship),
+    }));
   };
 
   const lookupStudent = async () => {
@@ -209,6 +268,8 @@ export default function PatientRegistration() {
         school: ["STUDENT", "FIRST_TIME_STUDENT"].includes(form.patientType) ? form.school : "",
         year: ["STUDENT", "FIRST_TIME_STUDENT"].includes(form.patientType) && form.year ? Number(form.year) : null,
         hostel: ["STUDENT", "FIRST_TIME_STUDENT"].includes(form.patientType) ? form.hostel : "",
+        department: ["STAFF", "STAFF_DEPENDANT"].includes(form.patientType) ? form.department : "",
+        role: ["STAFF", "STAFF_DEPENDANT"].includes(form.patientType) ? form.role : "",
         emergencyContact: form.emergencyContact,
         emergencyPhone: form.emergencyPhone,
         emergencyRelation: form.emergencyRelation,
@@ -283,14 +344,153 @@ export default function PatientRegistration() {
         {category && (
         <form onSubmit={handleSubmit} className="space-y-6">
           <section className="rounded-xl bg-card p-6 shadow-card border border-border">
-            <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
               <h3 className="font-semibold font-display text-card-foreground flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-primary" /> Personal Information
+                <Search className="h-5 w-5 text-primary" />
+                {category === "STUDENT" ? "UNZA Student Details" : category === "STAFF" ? "UNZA Staff Details" : category === "STAFF_DEPENDANT" ? "Staff Dependant/Spouse Details" : "External Identity"}
               </h3>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setCategory(null)} className="text-xs text-muted-foreground">
-                Change patient type
-              </Button>
+              <div className="flex items-center gap-3">
+                {category === "STUDENT" && (
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <input type="checkbox" className="h-3.5 w-3.5" checked={isFirstTimeStudent} onChange={(e) => setIsFirstTimeStudent(e.target.checked)} />
+                    First-time student (initial medical exam)
+                  </label>
+                )}
+                {category === "PUBLIC" && (
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <input type="checkbox" className="h-3.5 w-3.5" checked={isExternalVisitor} onChange={(e) => setIsExternalVisitor(e.target.checked)} />
+                    External visitor (not affiliated with UNZA)
+                  </label>
+                )}
+                <Button type="button" variant="ghost" size="sm" onClick={() => setCategory(null)} className="text-xs text-muted-foreground">
+                  Change patient type
+                </Button>
+              </div>
             </div>
+            <p className="text-xs text-muted-foreground mb-4">
+              {["STUDENT", "FIRST_TIME_STUDENT"].includes(form.patientType)
+                ? "Search first — this pre-fills the personal details below from the university's student records."
+                : ["STAFF", "STAFF_DEPENDANT"].includes(form.patientType)
+                ? "Search first — this pre-fills the personal details below from the HR system."
+                : "No lookup needed for this patient type — enter details manually below."}
+            </p>
+            {["STUDENT", "FIRST_TIME_STUDENT"].includes(form.patientType) ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="studentId">Student Computer Number *</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="studentId"
+                      required
+                      placeholder="e.g. 20201234567"
+                      value={form.studentId}
+                      onChange={(e) => { setField("studentId", e.target.value); setLookupStatus("idle"); }}
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={lookupStudent} disabled={lookupStatus === "loading"} title="Lookup in SIS">
+                      {lookupStatus === "found" ? <CheckCircle2 className="h-4 w-4 text-green-600" /> :
+                       lookupStatus === "already_registered" ? <AlertCircle className="h-4 w-4 text-amber-500" /> :
+                       <Search className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Enter the student's SIS computer number then click search to auto-fill details.</p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="program">Program</Label>
+                  <Input id="program" value={form.program} onChange={(e) => setField("program", e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="school">School/Faculty</Label>
+                  <Input id="school" value={form.school} onChange={(e) => setField("school", e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="yearOfStudy">Year of Study</Label>
+                  <Select value={form.year} onValueChange={(value) => setField("year", value)}>
+                    <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7].map((y) => (
+                        <SelectItem key={y} value={String(y)}>Year {y}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="hostel">Hostel/Residence</Label>
+                  <Input id="hostel" value={form.hostel} onChange={(e) => setField("hostel", e.target.value)} />
+                </div>
+              </div>
+            ) : ["STAFF", "STAFF_DEPENDANT"].includes(form.patientType) ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="manNumber">
+                    {form.patientType === "STAFF_DEPENDANT" ? "Staff Member's Man Number *" : "Man Number *"}
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="manNumber"
+                      required
+                      placeholder="e.g. MN001234"
+                      value={form.manNumber}
+                      onChange={(e) => {
+                        setField("manNumber", e.target.value);
+                        setLookupStatus("idle");
+                        setLinkedStaffName("");
+                        setStaffDependents([]);
+                        setSelectedDependentIndex("");
+                        setForm((prev) => ({ ...prev, department: "", role: "" }));
+                      }}
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={lookupStaff} disabled={lookupStatus === "loading"} title="Lookup in HR system">
+                      {lookupStatus === "found" ? <CheckCircle2 className="h-4 w-4 text-green-600" /> :
+                       lookupStatus === "already_registered" ? <AlertCircle className="h-4 w-4 text-amber-500" /> :
+                       <Search className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {form.patientType === "STAFF_DEPENDANT"
+                      ? "Enter the staff member's man number to link this dependant to their record."
+                      : "Enter the UNZA HR man number then click search to auto-fill details from the HR system."}
+                  </p>
+                </div>
+                {form.patientType === "STAFF_DEPENDANT" && linkedStaffName && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="dependentSelect">Select Dependant/Spouse *</Label>
+                    {staffDependents.length > 0 ? (
+                      <Select value={selectedDependentIndex} onValueChange={selectDependent}>
+                        <SelectTrigger id="dependentSelect"><SelectValue placeholder="Select from HR record" /></SelectTrigger>
+                        <SelectContent>
+                          {staffDependents.map((dep, index) => (
+                            <SelectItem key={`${dep.full_name}-${index}`} value={String(index)}>
+                              {dep.full_name} — {dep.relationship}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-xs text-amber-600">No dependants/spouse on file for {linkedStaffName} in the HR system — enter their details manually below.</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">Linked to staff member: {linkedStaffName}</p>
+                  </div>
+                )}
+                <div className="space-y-1.5">
+                  <Label htmlFor="department">Department</Label>
+                  <Input id="department" value={form.department} onChange={(e) => setField("department", e.target.value)} />
+                </div>
+                {form.patientType === "STAFF" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="role">Job Title</Label>
+                    <Input id="role" value={form.role} onChange={(e) => setField("role", e.target.value)} />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Use this patient type for visitors and non-UNZA patients. No student ID or man number is required, and the system will generate an external clinic number automatically when you leave the field blank.</p>
+            )}
+          </section>
+
+          <section className="rounded-xl bg-card p-6 shadow-card border border-border">
+            <h3 className="font-semibold font-display text-card-foreground mb-4 flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-primary" /> Personal Information
+            </h3>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor="clinicNumber">Clinic Number</Label>
@@ -351,100 +551,6 @@ export default function PatientRegistration() {
                 <Input id="address" required value={form.address} onChange={(e) => setField("address", e.target.value)} />
               </div>
             </div>
-          </section>
-
-          <section className="rounded-xl bg-card p-6 shadow-card border border-border">
-            <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-              <h3 className="font-semibold font-display text-card-foreground">
-                {category === "STUDENT" ? "UNZA Student Details" : category === "STAFF" ? "UNZA Staff Details" : category === "STAFF_DEPENDANT" ? "Staff Dependant/Spouse Details" : "External Identity"}
-              </h3>
-              {category === "STUDENT" && (
-                <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <input type="checkbox" className="h-3.5 w-3.5" checked={isFirstTimeStudent} onChange={(e) => setIsFirstTimeStudent(e.target.checked)} />
-                  First-time student (initial medical exam)
-                </label>
-              )}
-              {category === "PUBLIC" && (
-                <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <input type="checkbox" className="h-3.5 w-3.5" checked={isExternalVisitor} onChange={(e) => setIsExternalVisitor(e.target.checked)} />
-                  External visitor (not affiliated with UNZA)
-                </label>
-              )}
-            </div>
-            {["STUDENT", "FIRST_TIME_STUDENT"].includes(form.patientType) ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="studentId">Student Computer Number *</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="studentId"
-                      required
-                      placeholder="e.g. 20201234567"
-                      value={form.studentId}
-                      onChange={(e) => { setField("studentId", e.target.value); setLookupStatus("idle"); }}
-                    />
-                    <Button type="button" variant="outline" size="sm" onClick={lookupStudent} disabled={lookupStatus === "loading"} title="Lookup in SIS">
-                      {lookupStatus === "found" ? <CheckCircle2 className="h-4 w-4 text-green-600" /> :
-                       lookupStatus === "already_registered" ? <AlertCircle className="h-4 w-4 text-amber-500" /> :
-                       <Search className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Enter the student's SIS computer number then click search to auto-fill details.</p>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="program">Program</Label>
-                  <Input id="program" value={form.program} onChange={(e) => setField("program", e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="school">School/Faculty</Label>
-                  <Input id="school" value={form.school} onChange={(e) => setField("school", e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="yearOfStudy">Year of Study</Label>
-                  <Select value={form.year} onValueChange={(value) => setField("year", value)}>
-                    <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5, 6, 7].map((y) => (
-                        <SelectItem key={y} value={String(y)}>Year {y}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="hostel">Hostel/Residence</Label>
-                  <Input id="hostel" value={form.hostel} onChange={(e) => setField("hostel", e.target.value)} />
-                </div>
-              </div>
-            ) : ["STAFF", "STAFF_DEPENDANT"].includes(form.patientType) ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="manNumber">
-                    {form.patientType === "STAFF_DEPENDANT" ? "Staff Member's Man Number *" : "Man Number *"}
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="manNumber"
-                      required
-                      placeholder="e.g. MN001234"
-                      value={form.manNumber}
-                      onChange={(e) => { setField("manNumber", e.target.value); setLookupStatus("idle"); }}
-                    />
-                    <Button type="button" variant="outline" size="sm" onClick={lookupStaff} disabled={lookupStatus === "loading"} title="Lookup in HR system">
-                      {lookupStatus === "found" ? <CheckCircle2 className="h-4 w-4 text-green-600" /> :
-                       lookupStatus === "already_registered" ? <AlertCircle className="h-4 w-4 text-amber-500" /> :
-                       <Search className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {form.patientType === "STAFF_DEPENDANT"
-                      ? "Enter the staff member's man number to link this dependant to their record."
-                      : "Enter the UNZA HR man number then click search to auto-fill details from the HR system."}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Use this patient type for visitors and non-UNZA patients. No student ID or man number is required, and the system will generate an external clinic number automatically when you leave the field blank.</p>
-            )}
           </section>
 
           <section className="rounded-xl bg-card p-6 shadow-card border border-border">

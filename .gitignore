@@ -15,6 +15,7 @@ dist-ssr
 # Local environment overrides (may contain machine-specific secrets)
 .env
 .env.local
+.env.backend
 
 # Editor directories and files
 .vscode/*
