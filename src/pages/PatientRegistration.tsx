@@ -84,6 +84,10 @@ export default function PatientRegistration() {
   const [linkedStaffName, setLinkedStaffName] = useState("");
   const [staffDependents, setStaffDependents] = useState<{ full_name: string; relationship: string; date_of_birth: string }[]>([]);
   const [selectedDependentIndex, setSelectedDependentIndex] = useState("");
+  const [studentInstance, setStudentInstance] = useState("");
+  const [matchedInstance, setMatchedInstance] = useState("");
+
+  const SIS_INSTANCES = ["UG", "PG", "GSB", "IDE", "ZOU", "ecampus"];
 
   const setField = (key: keyof FormState, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -100,6 +104,8 @@ export default function PatientRegistration() {
     setLinkedStaffName("");
     setStaffDependents([]);
     setSelectedDependentIndex("");
+    setStudentInstance("");
+    setMatchedInstance("");
     setForm((prev) => ({ ...prev, department: "", role: "" }));
     if (next === "STUDENT") setField("patientType", isFirstTimeStudent ? "FIRST_TIME_STUDENT" : "STUDENT");
     else if (next === "STAFF") setField("patientType", "STAFF");
@@ -195,13 +201,15 @@ export default function PatientRegistration() {
   const lookupStudent = async () => {
     if (!form.studentId.trim()) { toast.error("Enter a student computer number first"); return; }
     setLookupStatus("loading");
+    setMatchedInstance("");
     try {
-      const result = await api.sis.lookupStudent(form.studentId.trim());
+      const result = await api.sis.lookupStudent(form.studentId.trim(), studentInstance || undefined);
       if (result.already_registered) {
         setLookupStatus("already_registered");
         toast.warning(`Student already registered — Clinic No: ${result.clinic_number}`);
       } else if (result.found) {
         setLookupStatus("found");
+        setMatchedInstance(result.instance || studentInstance || "");
         setForm((prev) => ({
           ...prev,
           firstName: (result.name as string).split(" ")[0] || prev.firstName,
@@ -210,8 +218,11 @@ export default function PatientRegistration() {
           school: result.school || prev.school,
           phone: result.phone || prev.phone,
           email: result.email || prev.email,
+          gender: result.gender || prev.gender,
+          dob: result.date_of_birth || prev.dob,
+          year: result.year ? String(result.year) : prev.year,
         }));
-        toast.success("Found in SIS — details pre-filled");
+        toast.success(`Found in SIS (${result.instance || "matched"}) — details pre-filled`);
       } else {
         setLookupStatus("not_found");
         toast.info("Student number not found in SIS — enter details manually");
@@ -384,7 +395,7 @@ export default function PatientRegistration() {
                       required
                       placeholder="e.g. 20201234567"
                       value={form.studentId}
-                      onChange={(e) => { setField("studentId", e.target.value); setLookupStatus("idle"); }}
+                      onChange={(e) => { setField("studentId", e.target.value); setLookupStatus("idle"); setMatchedInstance(""); }}
                     />
                     <Button type="button" variant="outline" size="sm" onClick={lookupStudent} disabled={lookupStatus === "loading"} title="Lookup in SIS">
                       {lookupStatus === "found" ? <CheckCircle2 className="h-4 w-4 text-green-600" /> :
@@ -392,7 +403,22 @@ export default function PatientRegistration() {
                        <Search className="h-4 w-4" />}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">Enter the student's SIS computer number then click search to auto-fill details.</p>
+                  <p className="text-xs text-muted-foreground">
+                    {matchedInstance ? `Matched instance: ${matchedInstance}` : "Enter the student's SIS computer number then click search to auto-fill details."}
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="studentInstance">Instance</Label>
+                  <Select value={studentInstance || "auto"} onValueChange={(value) => { setStudentInstance(value === "auto" ? "" : value); setLookupStatus("idle"); setMatchedInstance(""); }}>
+                    <SelectTrigger id="studentInstance"><SelectValue placeholder="Auto-detect" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">Auto-detect (search all)</SelectItem>
+                      {SIS_INSTANCES.map((inst) => (
+                        <SelectItem key={inst} value={inst}>{inst}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Narrows the search to one campus/programme track if known — otherwise all are checked.</p>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="program">Program</Label>

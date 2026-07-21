@@ -368,7 +368,8 @@ export const api = {
    },
 
   sis: {
-    lookupStudent: (studentId: string) => request(`/patients/lookup/student-id/${encodeURIComponent(studentId.trim())}`),
+    lookupStudent: (studentId: string, instance?: string) =>
+      request(`/patients/lookup/student-id/${encodeURIComponent(studentId.trim())}${instance ? `?instance=${encodeURIComponent(instance)}` : ""}`),
   },
 
   departments: {

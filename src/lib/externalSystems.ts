@@ -33,9 +33,11 @@ async function fetchExternal(url: string, options?: RequestInit) {
 
 // Student Information System integration
 export const sisApi = {
-  // Search student by student number
-  searchByStudentNumber: async (studentNumber: string) => {
-    return fetchExternal(`${API_BASE}/external/sis/students/${encodeURIComponent(studentNumber.trim())}`);
+  // Search student by student number. Instance is optional — UG, PG, GSB, IDE, ZOU, ecampus.
+  // When omitted, the backend tries every instance and returns the first match.
+  searchByStudentNumber: async (studentNumber: string, instance?: string) => {
+    const query = instance ? `?instance=${encodeURIComponent(instance)}` : "";
+    return fetchExternal(`${API_BASE}/external/sis/students/${encodeURIComponent(studentNumber.trim())}${query}`);
   },
 
   // Search students by name
